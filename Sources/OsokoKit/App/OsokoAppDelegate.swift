@@ -39,6 +39,13 @@ public final class OsokoAppDelegate: NSObject, NSApplicationDelegate, NSMenuDele
                 ScreenshotInbox.restore()
             }
         }
+
+        // 6. Check onboarding and required system permissions
+        let permissions = PermissionsManager.shared
+        let hasCompleted = UserDefaults.standard.bool(forKey: "osoko.hasCompletedOnboarding")
+        if !hasCompleted || !permissions.allPermissionsGranted {
+            OnboardingWindowController.shared.show()
+        }
     }
 
     /// When a headless app is launched again (e.g. from Spotlight, Raycast, Alfred, or Finder),
@@ -78,6 +85,13 @@ public final class OsokoAppDelegate: NSObject, NSApplicationDelegate, NSMenuDele
 
     private func buildStatusMenu() -> NSMenu {
         let menu = NSMenu()
+
+        if !PermissionsManager.shared.allPermissionsGranted {
+            let permItem = NSMenuItem(title: "⚠️ Permissions Setup...", action: #selector(openOnboardingAction), keyEquivalent: "")
+            permItem.target = self
+            menu.addItem(permItem)
+            menu.addItem(.separator())
+        }
 
         let snipItem = NSMenuItem(title: "Snip Screenshot (⌘⇧S)", action: #selector(snipAction), keyEquivalent: "")
         snipItem.target = self
@@ -154,6 +168,10 @@ public final class OsokoAppDelegate: NSObject, NSApplicationDelegate, NSMenuDele
 
     @objc private func openSettingsAction() {
         SettingsWindowController.shared.show()
+    }
+
+    @objc private func openOnboardingAction() {
+        OnboardingWindowController.shared.show(force: true)
     }
 
     @objc private func quitAction() {

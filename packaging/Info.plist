@@ -22,5 +22,9 @@
     <true/>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>Osoko requires Screen Recording permission to capture screenshots and windows.</string>
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>Osoko requires Desktop access to automatically detect screenshots and save exports.</string>
 </dict>
 </plist>

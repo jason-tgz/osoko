@@ -4,7 +4,7 @@ import AppKit
 public struct SettingsView: View {
     @ObservedObject private var settings = OsokoSettings.shared
     @ObservedObject private var stack = ScreenshotStack.shared
-    @State private var isAccessibilityTrusted = ScreenshotCaptureService.isAccessibilityTrusted()
+    @ObservedObject private var permissions = PermissionsManager.shared
 
     public init() {}
 
@@ -17,7 +17,7 @@ public struct SettingsView: View {
 
             shortcutsTab
                 .tabItem {
-                    Label("Shortcuts", systemImage: "keyboard")
+                    Label("Shortcuts & Permissions", systemImage: "keyboard")
                 }
 
             aboutTab
@@ -25,10 +25,10 @@ public struct SettingsView: View {
                     Label("About", systemImage: "info.circle")
                 }
         }
-        .frame(width: 480, height: 440)
+        .frame(width: 500, height: 490)
         .padding(20)
         .onAppear {
-            isAccessibilityTrusted = ScreenshotCaptureService.isAccessibilityTrusted()
+            permissions.refreshStatus()
         }
     }
 
@@ -104,33 +104,43 @@ public struct SettingsView: View {
             }
 
             Section {
-                HStack {
-                    Image(systemName: isAccessibilityTrusted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .foregroundStyle(isAccessibilityTrusted ? .green : .yellow)
+                permissionStatusRow(
+                    title: "Screen Recording",
+                    description: "Captures snippets and windows. (Requires app restart)",
+                    isGranted: permissions.isScreenRecordingGranted,
+                    action: { permissions.requestScreenRecording() }
+                )
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(isAccessibilityTrusted ? "Accessibility Granted" : "Accessibility Permission Needed")
-                            .font(.system(size: 13, weight: .medium))
-                        Text(isAccessibilityTrusted
-                             ? "Global shortcut (⌘⇧S) is active system-wide."
-                             : "Required for global hotkeys (⌘⇧S, ⌥⌘S). Standard ⌘⇧4 works without permissions.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                permissionStatusRow(
+                    title: "Accessibility",
+                    description: "Enables global hotkeys (⌘⇧S) and bottom-edge slide-out.",
+                    isGranted: permissions.isAccessibilityGranted,
+                    action: { permissions.requestAccessibility() }
+                )
+
+                permissionStatusRow(
+                    title: "Desktop Folder",
+                    description: "Intercepts native captures and saves files to Desktop.",
+                    isGranted: permissions.isDesktopAccessGranted,
+                    action: { permissions.requestDesktopAccess() }
+                )
+
+                HStack {
+                    Button("Open Setup Wizard...") {
+                        OnboardingWindowController.shared.show(force: true)
                     }
 
                     Spacer()
 
-                    if !isAccessibilityTrusted {
-                        Button("Grant Access") {
-                            ScreenshotCaptureService.requestAccessibility()
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                isAccessibilityTrusted = ScreenshotCaptureService.isAccessibilityTrusted()
-                            }
-                        }
+                    Button(action: {
+                        PermissionsManager.relaunchApp()
+                    }) {
+                        Label("Relaunch Osoko", systemImage: "arrow.triangle.2.circlepath")
                     }
                 }
+                .padding(.top, 4)
             } header: {
-                Text("Permissions")
+                Text("System Permissions")
             }
         }
         .formStyle(.grouped)
@@ -194,6 +204,37 @@ public struct SettingsView: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
+        }
+    }
+
+    private func permissionStatusRow(title: String, description: String, isGranted: Bool, action: @escaping () -> Void) -> some View {
+        HStack {
+            Image(systemName: isGranted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .foregroundStyle(isGranted ? .green : .yellow)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 13, weight: .medium))
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if isGranted {
+                Text("Granted")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.green)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Color.green.opacity(0.1), in: Capsule())
+            } else {
+                Button("Grant Access") {
+                    action()
+                }
+                .controlSize(.small)
+            }
         }
     }
 
