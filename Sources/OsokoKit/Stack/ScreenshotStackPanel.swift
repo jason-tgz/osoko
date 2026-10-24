@@ -47,6 +47,7 @@ public final class ScreenshotStackPanel: NSPanel {
     public func reposition(itemCount: Int) {
         guard itemCount > 0 else {
             orderOut(nil)
+            StackCollapseState.shared.stopEdgeMonitoring()
             return
         }
 
@@ -56,6 +57,7 @@ public final class ScreenshotStackPanel: NSPanel {
             ?? NSScreen.screens.first
 
         let visibleFrame = screen?.visibleFrame ?? CGRect(x: 0, y: 0, width: 1440, height: 900)
+        let screenFrame = screen?.frame ?? visibleFrame
 
         let panelWidth: CGFloat = 225
         let cardEstimateHeight: CGFloat = 130
@@ -64,8 +66,9 @@ public final class ScreenshotStackPanel: NSPanel {
 
         let x = visibleFrame.maxX - panelWidth - 10
         let y = visibleFrame.minY + 10
+        let windowWidth = max(panelWidth + 10, screenFrame.maxX - x)
 
-        setFrame(NSRect(x: x, y: y, width: panelWidth, height: panelHeight), display: true)
+        setFrame(NSRect(x: x, y: y, width: windowWidth, height: panelHeight), display: true)
         orderFrontRegardless()
     }
 }

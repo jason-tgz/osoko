@@ -67,6 +67,9 @@ public final class ScreenshotStack: ObservableObject {
             }
         }
 
+        // Expand stack and start 10s auto-collapse countdown
+        StackCollapseState.shared.onNewScreenshotAdded()
+
         return item
     }
 
@@ -74,6 +77,9 @@ public final class ScreenshotStack: ObservableObject {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         let item = items.remove(at: index)
         try? FileManager.default.removeItem(at: item.url)
+        if items.isEmpty {
+            StackCollapseState.shared.stopEdgeMonitoring()
+        }
     }
 
     public func consumeDrop(id: UUID) {
@@ -193,6 +199,9 @@ public final class ScreenshotStack: ObservableObject {
             try? FileManager.default.removeItem(at: item.url)
         }
         items.removeAll(where: { !$0.isPinned })
+        if items.isEmpty {
+            StackCollapseState.shared.stopEdgeMonitoring()
+        }
     }
 
     private func showToast(id: UUID, text: String) {

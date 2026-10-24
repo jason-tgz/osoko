@@ -14,12 +14,32 @@ public final class OsokoSettings: ObservableObject {
         static let interceptSystemScreenshots = "osoko.interceptSystemScreenshots"
         static let maxStackItems = "osoko.maxStackItems"
         static let saveLocation = "osoko.saveLocation"
+        static let autoCollapseEnabled = "osoko.autoCollapseEnabled"
+        static let autoCollapseDelay = "osoko.autoCollapseDelay"
     }
 
     @Published public var showMenuBarIcon: Bool {
         didSet {
             UserDefaults.standard.set(showMenuBarIcon, forKey: Keys.showMenuBarIcon)
             onMenuBarSettingChanged?(showMenuBarIcon)
+        }
+    }
+
+    @Published public var autoCollapseEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(autoCollapseEnabled, forKey: Keys.autoCollapseEnabled)
+            if !autoCollapseEnabled {
+                StackCollapseState.shared.expand()
+            } else {
+                StackCollapseState.shared.resetCollapseTimer()
+            }
+        }
+    }
+
+    @Published public var autoCollapseDelay: Double {
+        didSet {
+            UserDefaults.standard.set(autoCollapseDelay, forKey: Keys.autoCollapseDelay)
+            StackCollapseState.shared.resetCollapseTimer()
         }
     }
 
@@ -67,6 +87,8 @@ public final class OsokoSettings: ObservableObject {
         self.playShutterSound = defaults.object(forKey: Keys.playShutterSound) as? Bool ?? true
         self.interceptSystemScreenshots = defaults.object(forKey: Keys.interceptSystemScreenshots) as? Bool ?? true
         self.maxStackItems = defaults.object(forKey: Keys.maxStackItems) as? Int ?? 5
+        self.autoCollapseEnabled = defaults.object(forKey: Keys.autoCollapseEnabled) as? Bool ?? true
+        self.autoCollapseDelay = defaults.object(forKey: Keys.autoCollapseDelay) as? Double ?? 10.0
 
         let defaultDesktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)[0].path
         self.saveLocationPath = defaults.string(forKey: Keys.saveLocation) ?? defaultDesktop

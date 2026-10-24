@@ -45,6 +45,16 @@ public struct SettingsView: View {
             }
 
             Section {
+                Toggle("Auto-collapse to side after \(Int(settings.autoCollapseDelay))s", isOn: $settings.autoCollapseEnabled)
+                if settings.autoCollapseEnabled {
+                    Stepper("Auto-collapse delay: \(Int(settings.autoCollapseDelay)) seconds", value: $settings.autoCollapseDelay, in: 3...60, step: 1)
+                }
+                Text("Slides the stack off-screen when inactive. Move cursor to the bottom edge of the screen to slide it back out.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Divider()
+
                 Toggle("Remove from stack after drag & drop into app", isOn: $settings.consumeOnDrop)
                 Toggle("Automatically copy new screenshots to clipboard", isOn: $settings.autoCopyToClipboard)
                 Toggle("Play camera sound on capture", isOn: $settings.playShutterSound)
