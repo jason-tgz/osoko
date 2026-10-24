@@ -1,0 +1,145 @@
+import SwiftUI
+
+struct ScreenshotCardView: View {
+    let item: ScreenshotItem
+    @ObservedObject var stack: ScreenshotStack
+
+    @State private var isHovering = false
+
+    private let maxCardWidth: CGFloat = 185
+    private let minCardHeight: CGFloat = 65
+    private let maxCardHeight: CGFloat = 140
+
+    private var cardSize: CGSize {
+        let w = maxCardWidth
+        let ratio = max(0.3, min(2.5, item.aspectRatio))
+        let h = min(maxCardHeight, max(minCardHeight, w / ratio))
+        return CGSize(width: w, height: h)
+    }
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+    }
+
+    var body: some View {
+        ZStack {
+            // 1. Thumbnail Image
+            Image(nsImage: item.thumbnail)
+                .resizable()
+                .interpolation(.high)
+                .aspectRatio(contentMode: .fill)
+                .frame(width: cardSize.width, height: cardSize.height)
+                .clipShape(shape)
+
+            // 2. Specular glass border
+            shape
+                .strokeBorder(Color.white.opacity(0.38), lineWidth: 0.8)
+            shape
+                .stroke(Color.black.opacity(0.18), lineWidth: 0.5)
+                .padding(-0.5)
+
+            // 3. Hover Overlay Controls
+            if isHovering {
+                VStack {
+                    HStack(spacing: 6) {
+                        // Close / Delete Button (Top-Left)
+                        Image(systemName: "xmark")
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(.primary)
+                            .frame(width: 22, height: 22)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+
+                        Spacer()
+
+                        // Save to Location Button (Top-Right)
+                        Image(systemName: "arrow.down.to.line")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.primary)
+                            .frame(width: 22, height: 22)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+
+                        // Pin Button
+                        Image(systemName: item.isPinned ? "pin.fill" : "pin")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(item.isPinned ? .orange : .primary)
+                            .frame(width: 22, height: 22)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+                    }
+                    .padding(5)
+
+                    Spacer()
+
+                    // Bottom Row: Dimensions Badge
+                    HStack {
+                        HStack(spacing: 4) {
+                            Image(systemName: "viewfinder")
+                                .font(.system(size: 8, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                            Text(item.formattedDimensions)
+                                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                                .foregroundStyle(.primary)
+                        }
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .overlay(Capsule().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+
+                        Spacer()
+                    }
+                    .padding(5)
+                }
+                .allowsHitTesting(false)
+            } else if item.isPinned {
+                // If pinned and not hovering, keep subtle pin indicator
+                VStack {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "pin.fill")
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(.orange)
+                            .frame(width: 18, height: 18)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .padding(4)
+                    }
+                    Spacer()
+                }
+                .allowsHitTesting(false)
+            }
+
+            // 4. Toast Badge Feedback ("Copied ✓" / "Saved ✓" / "Pinned 📌")
+            if let toast = stack.toastMessage, toast.id == item.id {
+                Text(toast.text)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.black.opacity(0.80), in: Capsule())
+                    .overlay(Capsule().stroke(Color.white.opacity(0.2), lineWidth: 0.5))
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                    .allowsHitTesting(false)
+            }
+
+            // 5. Native AppKit Drag & Drop and Click Handling Area
+            ScreenshotGrabArea(
+                item: item,
+                stack: stack
+            )
+            .frame(width: cardSize.width, height: cardSize.height)
+        }
+        .frame(width: cardSize.width, height: cardSize.height)
+        .clipShape(shape)
+        .shadow(
+            color: Color.black.opacity(isHovering ? 0.35 : 0.22),
+            radius: isHovering ? 12 : 7,
+            x: 0,
+            y: isHovering ? 5 : 3
+        )
+        .scaleEffect(isHovering ? 1.025 : 1.0)
+        .animation(.spring(response: 0.28, dampingFraction: 0.75), value: isHovering)
+        .animation(.easeOut(duration: 0.2), value: stack.toastMessage?.text)
+        .onHover { isHovering = $0 }
+    }
+}
