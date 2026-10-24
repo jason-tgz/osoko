@@ -41,6 +41,7 @@ public final class StackCollapseState: ObservableObject {
         guard OsokoSettings.shared.autoCollapseEnabled else { return }
 
         cancelCollapseTimer()
+        self.isHovering = false
         withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
             isCollapsed = true
         }
@@ -49,19 +50,16 @@ public final class StackCollapseState: ObservableObject {
 
     /// Tracks whether the user is currently hovering over the stack cards or toolbar.
     public func userHoverChanged(isHovering: Bool) {
+        // While collapsed, ignore all hover events so cursor moving over former position does not trigger expansion
+        guard !isCollapsed else { return }
         self.isHovering = isHovering
 
         if isHovering {
-            // User is interacting: cancel pending auto-collapse
+            // User is interacting while expanded: cancel pending auto-collapse
             cancelCollapseTimer()
-            if isCollapsed {
-                expand()
-            }
         } else {
             // User left the stack: start the auto-collapse countdown
-            if !isCollapsed {
-                resetCollapseTimer()
-            }
+            resetCollapseTimer()
         }
     }
 

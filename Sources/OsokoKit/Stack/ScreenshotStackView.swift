@@ -86,13 +86,15 @@ public struct ScreenshotStackView: View {
             .padding(.bottom, 16)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             .offset(x: visibility.isCollapsed ? 320 : 0)
+            .opacity(visibility.isCollapsed ? 0.0 : 1.0)
+            .allowsHitTesting(!visibility.isCollapsed)
             .animation(.spring(response: 0.38, dampingFraction: 0.82), value: visibility.isCollapsed)
             .animation(.spring(response: 0.32, dampingFraction: 0.82), value: stack.items.map(\.id))
             .onHover { isHovering in
                 visibility.userHoverChanged(isHovering: isHovering)
             }
 
-            // Peeking edge handle when collapsed to the side
+            // Peeking edge handle when collapsed to the side (click to expand)
             if visibility.isCollapsed && !stack.items.isEmpty {
                 Button(action: {
                     visibility.expand()
@@ -106,11 +108,6 @@ public struct ScreenshotStackView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Click or move cursor to bottom edge of screen to expand stack")
-                .onHover { isHovering in
-                    if isHovering {
-                        visibility.expand()
-                    }
-                }
                 .transition(.opacity.combined(with: .scale(scale: 0.8)))
             }
         }
