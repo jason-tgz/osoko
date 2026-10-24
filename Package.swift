@@ -17,6 +17,10 @@ let package = Package(
         .executableTarget(
             name: "Osoko",
             dependencies: ["OsokoKit"]
+        ),
+        .testTarget(
+            name: "OsokoKitTests",
+            dependencies: ["OsokoKit"]
         )
     ],
     swiftLanguageModes: [.v6]

@@ -136,18 +136,17 @@ public final class ScreenshotCaptureService {
 
         // 2. Watch Desktop folder to scoop up any screenshots that land there
         if desktopWatcher == nil {
-            let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)[0]
-            let watcher = DirectoryWatcher(url: desktop) { [weak self] file in
+            let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)[0].resolvingSymlinksInPath()
+            let watcher = DirectoryWatcher(url: desktop) { file in
                 guard Self.isScreenshot(file) else { return }
+                guard !ExportTracker.shared.isExported(url: file) else { return }
                 let target = ScreenshotStack.storageDirectory.appendingPathComponent(file.lastPathComponent)
                 do {
                     if FileManager.default.fileExists(atPath: target.path) {
                         try? FileManager.default.removeItem(at: target)
                     }
                     try FileManager.default.moveItem(at: file, to: target)
-                    Task { @MainActor [weak self] in
-                        self?.stack.add(fileURL: target)
-                    }
+                    // Note: storageWatcher automatically monitors storageDirectory and will add target once.
                 } catch {}
             }
             desktopWatcher = watcher
@@ -210,6 +209,7 @@ public final class ScreenshotCaptureService {
 
     nonisolated public static func isScreenshot(_ url: URL) -> Bool {
         guard isImageFile(url) else { return false }
+        guard !ExportTracker.shared.isExported(url: url) else { return false }
         let name = url.lastPathComponent
         if name.hasPrefix("Screenshot") || name.hasPrefix("Screen Shot") || name.hasPrefix("Window_") || name.hasPrefix("Screen_") {
             return true

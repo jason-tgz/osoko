@@ -10,6 +10,7 @@ public final class ScreenshotStack: ObservableObject {
 
     nonisolated public static let storageDirectory: URL = {
         let dir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .resolvingSymlinksInPath()
             .appendingPathComponent("OsokoScreenshots", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
@@ -21,19 +22,26 @@ public final class ScreenshotStack: ObservableObject {
 
     @discardableResult
     public func add(fileURL: URL) -> ScreenshotItem? {
-        // Prevent duplicate items for the same file path
-        if let existing = items.first(where: { $0.url.path == fileURL.path }) {
+        let resolvedURL = fileURL.standardizedFileURL.resolvingSymlinksInPath()
+
+        // Do not add files that were exported by Osoko
+        if ExportTracker.shared.isExported(url: resolvedURL) {
+            return nil
+        }
+
+        // Prevent duplicate items for the same file path (checking resolved paths)
+        if let existing = items.first(where: { $0.url.standardizedFileURL.resolvingSymlinksInPath().path == resolvedURL.path }) {
             return existing
         }
 
-        guard let image = NSImage(contentsOf: fileURL) else { return nil }
+        guard let image = NSImage(contentsOf: resolvedURL) else { return nil }
         let rep = image.representations.first
         let width = rep?.pixelsWide ?? Int(image.size.width)
         let height = rep?.pixelsHigh ?? Int(image.size.height)
         guard width > 0, height > 0 else { return nil }
 
         let item = ScreenshotItem(
-            url: fileURL,
+            url: resolvedURL,
             thumbnail: image,
             pixelWidth: max(1, width),
             pixelHeight: max(1, height)
@@ -131,21 +139,43 @@ public final class ScreenshotStack: ObservableObject {
 
     public func saveToLocation(id: UUID) {
         guard let item = items.first(where: { $0.id == id }) else { return }
-        let targetDir = OsokoSettings.shared.saveLocationURL
+        let targetDir = OsokoSettings.shared.saveLocationURL.resolvingSymlinksInPath()
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd 'at' h.mm.ss a"
         let timestamp = formatter.string(from: item.createdAt)
-        let destination = targetDir.appendingPathComponent("Screenshot \(timestamp).png")
+        let destination = uniqueURL(in: targetDir, baseName: "Screenshot \(timestamp)", ext: "png")
+
+        // Pre-register both raw and resolved paths so watchers ignore this exported file
+        ExportTracker.shared.register(url: destination)
+        ExportTracker.shared.register(url: destination.resolvingSymlinksInPath())
 
         do {
-            if FileManager.default.fileExists(atPath: destination.path) {
-                try FileManager.default.removeItem(at: destination)
-            }
             try FileManager.default.copyItem(at: item.url, to: destination)
-            showToast(id: id, text: "Saved ✓")
+
+            // Remove macOS screenshot attribute and mark with Osoko saved tag
+            destination.withUnsafeFileSystemRepresentation { p in
+                guard let p else { return }
+                removexattr(p, "com.apple.metadata:kMDItemIsScreenCapture", 0)
+                let val = "1"
+                setxattr(p, "com.osoko.saved", val, val.utf8.count, 0, 0)
+            }
+
+            let folderName = targetDir.lastPathComponent
+            let message = folderName.lowercased() == "desktop" ? "Saved to Desktop ✓" : "Saved to \(folderName) ✓"
+            showToast(id: id, text: message)
         } catch {
             showToast(id: id, text: "Save Failed")
         }
+    }
+
+    private func uniqueURL(in directory: URL, baseName: String, ext: String) -> URL {
+        var candidate = directory.appendingPathComponent("\(baseName).\(ext)")
+        var counter = 1
+        while FileManager.default.fileExists(atPath: candidate.path) {
+            candidate = directory.appendingPathComponent("\(baseName) (\(counter)).\(ext)")
+            counter += 1
+        }
+        return candidate
     }
 
     public func openInDefaultApp(id: UUID) {

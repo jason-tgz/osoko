@@ -42,11 +42,12 @@ final class DirectoryWatcher: @unchecked Sendable {
     }
 
     private func listFiles() -> [URL] {
-        (try? FileManager.default.contentsOfDirectory(
-            at: url,
+        let resolved = url.resolvingSymlinksInPath()
+        return (try? FileManager.default.contentsOfDirectory(
+            at: resolved,
             includingPropertiesForKeys: [.fileSizeKey],
             options: [.skipsHiddenFiles]
-        )) ?? []
+        ))?.map { $0.standardizedFileURL.resolvingSymlinksInPath() } ?? []
     }
 
     private func scan() {
@@ -54,8 +55,13 @@ final class DirectoryWatcher: @unchecked Sendable {
         var hasPendingIncomplete = false
 
         for file in current {
-            guard !knownFiles.contains(file.path) else { continue }
+            let path = file.path
+            guard !knownFiles.contains(path) else { continue }
             guard let size = (try? file.resourceValues(forKeys: [.fileSizeKey]))?.fileSize, size > 100 else {
+                continue
+            }
+            if ExportTracker.shared.isExported(url: file) {
+                knownFiles.insert(path)
                 continue
             }
             if ScreenshotCaptureService.isImageFile(file) {
@@ -64,7 +70,7 @@ final class DirectoryWatcher: @unchecked Sendable {
                     continue
                 }
             }
-            knownFiles.insert(file.path)
+            knownFiles.insert(path)
             onNewFile(file)
         }
 
