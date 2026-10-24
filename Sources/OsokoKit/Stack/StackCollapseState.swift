@@ -133,17 +133,18 @@ public final class StackCollapseState: ObservableObject {
         let visibleFrame = screen.visibleFrame
         let screenFrame = screen.frame
 
-        // Hit testing for bottom edge / bottom-right corner:
-        // 1. Bottom edge of the screen (visible frame bottom or physical bottom y <= 8)
-        let isAtBottomEdge = (mouse.y <= visibleFrame.minY + 8) || (mouse.y <= screenFrame.minY + 8)
+        // Tight edge threshold: only activate when the cursor is right against the screen border (within 3 points)
+        let edgeThreshold: CGFloat = 3.0
 
-        // 2. Right edge of the screen where the stack slid into
-        let isAtRightEdge = (mouse.x >= visibleFrame.maxX - 8) || (mouse.x >= screenFrame.maxX - 8)
+        // 1. Bottom edge: cursor must touch the bottom border (within 3 points) on the right half of the display
+        let isAtBottomEdge = (mouse.y <= visibleFrame.minY + edgeThreshold || mouse.y <= screenFrame.minY + edgeThreshold)
+            && (mouse.x >= visibleFrame.midX)
 
-        // 3. Bottom-right corner zone
-        let isAtBottomRightCorner = (mouse.x >= visibleFrame.maxX - 320 && mouse.y <= visibleFrame.minY + 28)
+        // 2. Right edge: cursor must touch the right border (within 3 points) in the lower section of the display
+        let isAtRightEdge = (mouse.x >= visibleFrame.maxX - edgeThreshold || mouse.x >= screenFrame.maxX - edgeThreshold)
+            && (mouse.y <= visibleFrame.minY + 300)
 
-        if isAtBottomEdge || isAtRightEdge || isAtBottomRightCorner {
+        if isAtBottomEdge || isAtRightEdge {
             expand()
         }
     }
