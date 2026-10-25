@@ -59,6 +59,9 @@ public final class ScreenshotStack: ObservableObject {
         // Newest capture enters top of stack
         items.insert(item, at: 0)
 
+        // Pre-warm OCR recognition in background so copying text is instantaneous
+        TextRecognitionService.prewarm(imageURL: resolvedURL)
+
         // If auto-copy is enabled, copy immediately
         if OsokoSettings.shared.autoCopyToClipboard {
             copy(id: item.id, showToastFeedback: false)
@@ -85,6 +88,7 @@ public final class ScreenshotStack: ObservableObject {
     public func remove(id: UUID) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         let item = items.remove(at: index)
+        TextRecognitionService.clearCache(for: item.url)
         try? FileManager.default.removeItem(at: item.url)
         if items.isEmpty {
             StackCollapseState.shared.stopEdgeMonitoring()
@@ -154,6 +158,8 @@ public final class ScreenshotStack: ObservableObject {
 
     public func copyText(id: UUID) {
         guard let item = items.first(where: { $0.id == id }) else { return }
+
+        showToast(id: id, text: "Extracting Text...")
 
         Task { @MainActor in
             do {
@@ -271,6 +277,7 @@ public final class ScreenshotStack: ObservableObject {
 
     public func clearAll() {
         for item in items where !item.isPinned {
+            TextRecognitionService.clearCache(for: item.url)
             try? FileManager.default.removeItem(at: item.url)
         }
         items.removeAll(where: { !$0.isPinned })

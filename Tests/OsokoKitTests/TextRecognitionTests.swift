@@ -29,9 +29,16 @@ final class TextRecognitionTests: XCTestCase {
         let tempURL = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("ocr_test_\(UUID().uuidString).png")
         try png.write(to: tempURL)
-        defer { try? FileManager.default.removeItem(at: tempURL) }
+        defer {
+            TextRecognitionService.clearCache(for: tempURL)
+            try? FileManager.default.removeItem(at: tempURL)
+        }
 
         let extractedText = try await TextRecognitionService.recognizeText(from: tempURL)
         XCTAssertTrue(extractedText.localizedCaseInsensitiveContains("OSOKO") || extractedText.localizedCaseInsensitiveContains("OCR"), "Extracted text was: \(extractedText)")
+
+        // Verify caching returns the same result instantly
+        let cachedText = try await TextRecognitionService.recognizeText(from: tempURL)
+        XCTAssertEqual(extractedText, cachedText)
     }
 }
