@@ -78,8 +78,13 @@ public struct SettingsView: View {
                         selectSaveDirectory()
                     }
                 }
+
+                Toggle("Always prompt to rename when saving", isOn: $settings.promptToRenameOnSave)
+                Text("When enabled, clicking Save opens a dialog to rename the file before saving. (You can also hold Option or right-click to Save As).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             } header: {
-                Text("Save Location")
+                Text("Save & Download")
             }
 
             Section {

@@ -72,8 +72,8 @@ struct ScreenshotCardView: View {
 
                     Spacer()
 
-                    // Bottom Row: Dimensions Badge
-                    HStack {
+                    // Bottom Row: Dimensions Badge & Action Buttons (OCR & Share)
+                    HStack(spacing: 6) {
                         HStack(spacing: 4) {
                             Image(systemName: "viewfinder")
                                 .font(.system(size: 8, weight: .semibold))
@@ -88,6 +88,22 @@ struct ScreenshotCardView: View {
                         .overlay(Capsule().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
 
                         Spacer()
+
+                        // OCR Text Recognition Button
+                        Image(systemName: "text.viewfinder")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.primary)
+                            .frame(width: 22, height: 22)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+
+                        // Native Share Button
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.primary)
+                            .frame(width: 22, height: 22)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
                     }
                     .padding(5)
                 }

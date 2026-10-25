@@ -34,17 +34,26 @@ public final class ScreenshotStack: ObservableObject {
             return existing
         }
 
-        guard let image = NSImage(contentsOf: resolvedURL) else { return nil }
-        let rep = image.representations.first
-        let width = rep?.pixelsWide ?? Int(image.size.width)
-        let height = rep?.pixelsHigh ?? Int(image.size.height)
-        guard width > 0, height > 0 else { return nil }
+        // Efficient memory thumbnail: read metadata and downsample for UI display
+        guard let source = CGImageSourceCreateWithURL(resolvedURL as CFURL, nil) else { return nil }
+        guard let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] else { return nil }
+        let pixelWidth = properties[kCGImagePropertyPixelWidth] as? Int ?? 0
+        let pixelHeight = properties[kCGImagePropertyPixelHeight] as? Int ?? 0
+        guard pixelWidth > 0, pixelHeight > 0 else { return nil }
+
+        let thumbOptions: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: 450
+        ]
+        guard let cgThumb = CGImageSourceCreateThumbnailAtIndex(source, 0, thumbOptions as CFDictionary) else { return nil }
+        let thumbnail = NSImage(cgImage: cgThumb, size: NSSize(width: pixelWidth, height: pixelHeight))
 
         let item = ScreenshotItem(
             url: resolvedURL,
-            thumbnail: image,
-            pixelWidth: max(1, width),
-            pixelHeight: max(1, height)
+            thumbnail: thumbnail,
+            pixelWidth: max(1, pixelWidth),
+            pixelHeight: max(1, pixelHeight)
         )
 
         // Newest capture enters top of stack
@@ -143,7 +152,73 @@ public final class ScreenshotStack: ObservableObject {
         }
     }
 
+    public func copyText(id: UUID) {
+        guard let item = items.first(where: { $0.id == id }) else { return }
+
+        Task { @MainActor in
+            do {
+                let text = try await TextRecognitionService.recognizeText(from: item.url)
+                let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                if trimmed.isEmpty {
+                    self.showToast(id: id, text: "No Text Found")
+                } else {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(trimmed, forType: .string)
+                    self.showToast(id: id, text: "Text Copied ✓")
+                }
+            } catch {
+                self.showToast(id: id, text: "OCR Failed")
+            }
+        }
+    }
+
+    public func saveAs(id: UUID) {
+        guard let item = items.first(where: { $0.id == id }) else { return }
+
+        let savePanel = NSSavePanel()
+        savePanel.canCreateDirectories = true
+        savePanel.showsTagField = true
+        savePanel.directoryURL = OsokoSettings.shared.saveLocationURL
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd 'at' h.mm.ss a"
+        let timestamp = formatter.string(from: item.createdAt)
+        savePanel.nameFieldStringValue = "Screenshot \(timestamp).png"
+
+        NSApp.activate(ignoringOtherApps: true)
+        let response = savePanel.runModal()
+
+        guard response == .OK, let destination = savePanel.url else { return }
+
+        ExportTracker.shared.register(url: destination)
+        ExportTracker.shared.register(url: destination.resolvingSymlinksInPath())
+
+        do {
+            if FileManager.default.fileExists(atPath: destination.path) {
+                try FileManager.default.removeItem(at: destination)
+            }
+            try FileManager.default.copyItem(at: item.url, to: destination)
+
+            destination.withUnsafeFileSystemRepresentation { p in
+                guard let p else { return }
+                removexattr(p, "com.apple.metadata:kMDItemIsScreenCapture", 0)
+                let val = "1"
+                setxattr(p, "com.osoko.saved", val, val.utf8.count, 0, 0)
+            }
+
+            let fileName = destination.lastPathComponent
+            showToast(id: id, text: "Saved as \(fileName) ✓")
+        } catch {
+            showToast(id: id, text: "Save Failed")
+        }
+    }
+
     public func saveToLocation(id: UUID) {
+        if OsokoSettings.shared.promptToRenameOnSave {
+            saveAs(id: id)
+            return
+        }
+
         guard let item = items.first(where: { $0.id == id }) else { return }
         let targetDir = OsokoSettings.shared.saveLocationURL.resolvingSymlinksInPath()
         let formatter = DateFormatter()

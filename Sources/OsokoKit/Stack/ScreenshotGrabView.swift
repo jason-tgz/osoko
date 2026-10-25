@@ -5,6 +5,8 @@ public enum ScreenshotButtonKind: Sendable, Equatable {
     case close
     case save
     case pin
+    case ocr
+    case share
 }
 
 struct ScreenshotGrabArea: NSViewRepresentable {
@@ -32,6 +34,8 @@ struct ScreenshotGrabArea: NSViewRepresentable {
         view.onDropIntoApp = { stack.consumeDrop(id: id) }
         view.onRemove = { stack.remove(id: id) }
         view.onSaveToDesktop = { stack.saveToLocation(id: id) }
+        view.onSaveAs = { stack.saveAs(id: id) }
+        view.onCopyText = { stack.copyText(id: id) }
         view.onTogglePin = { stack.togglePin(id: id) }
         view.onReveal = { stack.revealInFinder(id: id) }
         view.onClearStack = { stack.clearAll() }
@@ -44,7 +48,12 @@ struct ScreenshotGrabArea: NSViewRepresentable {
         view.menuProvider = {
             let menu = NSMenu()
             menu.addItem(NSMenuItem(title: "Copy Image", action: #selector(ScreenshotGrabView.menuCopy), keyEquivalent: "c"))
+            menu.addItem(NSMenuItem(title: "Copy Text (OCR)", action: #selector(ScreenshotGrabView.menuOCR), keyEquivalent: "t"))
+            menu.addItem(.separator())
             menu.addItem(NSMenuItem(title: "Save to Location", action: #selector(ScreenshotGrabView.menuSave), keyEquivalent: "s"))
+            let saveAsItem = NSMenuItem(title: "Save As... (Rename)", action: #selector(ScreenshotGrabView.menuSaveAs), keyEquivalent: "S")
+            menu.addItem(saveAsItem)
+            menu.addItem(NSMenuItem(title: "Share...", action: #selector(ScreenshotGrabView.menuShare), keyEquivalent: ""))
             menu.addItem(.separator())
             let pinTitle = item.isPinned ? "Unpin from Stack" : "Keep on Stack"
             let pinItem = NSMenuItem(title: pinTitle, action: #selector(ScreenshotGrabView.menuTogglePin), keyEquivalent: "p")
@@ -74,6 +83,8 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
     var onDropIntoApp: () -> Void = {}
     var onRemove: () -> Void = {}
     var onSaveToDesktop: () -> Void = {}
+    var onSaveAs: () -> Void = {}
+    var onCopyText: () -> Void = {}
     var onTogglePin: () -> Void = {}
     var onReveal: () -> Void = {}
     var onClearStack: () -> Void = {}
@@ -106,6 +117,16 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
             return .save
         }
 
+        // Bottom-right: Share button (x: w - 34...w, y: max(0, h - 34)...h)
+        if NSRect(x: w - 34, y: max(0, h - 34), width: 34, height: 34).contains(p) {
+            return .share
+        }
+
+        // Bottom-right adjacent: OCR button (x: w - 68...w - 34, y: max(0, h - 34)...h)
+        if NSRect(x: w - 68, y: max(0, h - 34), width: 34, height: 34).contains(p) {
+            return .ocr
+        }
+
         return nil
     }
 
@@ -118,6 +139,8 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
         addCursorRect(NSRect(x: 0, y: 0, width: 36, height: 34), cursor: .pointingHand)
         addCursorRect(NSRect(x: w - 68, y: 0, width: 34, height: 34), cursor: .pointingHand)
         addCursorRect(NSRect(x: w - 34, y: 0, width: 34, height: 34), cursor: .pointingHand)
+        addCursorRect(NSRect(x: w - 68, y: max(0, h - 34), width: 34, height: 34), cursor: .pointingHand)
+        addCursorRect(NSRect(x: w - 34, y: max(0, h - 34), width: 34, height: 34), cursor: .pointingHand)
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -130,10 +153,20 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
                 onRemove()
                 return
             case .save:
-                onSaveToDesktop()
+                if event.modifierFlags.contains(.option) {
+                    onSaveAs()
+                } else {
+                    onSaveToDesktop()
+                }
                 return
             case .pin:
                 onTogglePin()
+                return
+            case .ocr:
+                onCopyText()
+                return
+            case .share:
+                showShareMenu()
                 return
             }
         }
@@ -185,7 +218,10 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
     }
 
     @objc func menuCopy() { onClick() }
+    @objc func menuOCR() { onCopyText() }
     @objc func menuSave() { onSaveToDesktop() }
+    @objc func menuSaveAs() { onSaveAs() }
+    @objc func menuShare() { showShareMenu() }
     @objc func menuTogglePin() { onTogglePin() }
     @objc func menuOpen() { onDoubleClick() }
     @objc func menuReveal() { onReveal() }
@@ -193,6 +229,13 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
     @objc func menuSettings() { onOpenSettings() }
     @objc func menuClearStack() { onClearStack() }
     @objc func menuQuit() { onQuitApp() }
+
+    public func showShareMenu() {
+        guard let url else { return }
+        let picker = NSSharingServicePicker(items: [url])
+        let targetRect = NSRect(x: bounds.width - 34, y: max(0, bounds.height - 34), width: 34, height: 34)
+        picker.show(relativeTo: targetRect, of: self, preferredEdge: .maxY)
+    }
 
     // MARK: - NSDraggingSource
     func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {

@@ -16,6 +16,11 @@ public final class OsokoSettings: ObservableObject {
         static let saveLocation = "osoko.saveLocation"
         static let autoCollapseEnabled = "osoko.autoCollapseEnabled"
         static let autoCollapseDelay = "osoko.autoCollapseDelay"
+        static let promptToRenameOnSave = "osoko.promptToRenameOnSave"
+    }
+
+    @Published public var promptToRenameOnSave: Bool {
+        didSet { UserDefaults.standard.set(promptToRenameOnSave, forKey: Keys.promptToRenameOnSave) }
     }
 
     @Published public var showMenuBarIcon: Bool {
@@ -89,6 +94,7 @@ public final class OsokoSettings: ObservableObject {
         self.maxStackItems = defaults.object(forKey: Keys.maxStackItems) as? Int ?? 5
         self.autoCollapseEnabled = defaults.object(forKey: Keys.autoCollapseEnabled) as? Bool ?? true
         self.autoCollapseDelay = defaults.object(forKey: Keys.autoCollapseDelay) as? Double ?? 10.0
+        self.promptToRenameOnSave = defaults.object(forKey: Keys.promptToRenameOnSave) as? Bool ?? false
 
         let defaultDesktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)[0].path
         self.saveLocationPath = defaults.string(forKey: Keys.saveLocation) ?? defaultDesktop
