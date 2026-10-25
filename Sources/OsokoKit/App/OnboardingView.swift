@@ -56,7 +56,7 @@ public struct OnboardingView: View {
                     icon: "keyboard",
                     iconColor: .purple,
                     title: "Accessibility",
-                    description: "Enables global hotkeys (⌘⇧S, ⌥⌘S) and bottom-edge slide-out.",
+                    description: "Enables global hotkeys (⌥⌘S) and bottom-edge slide-out.",
                     isGranted: permissions.isAccessibilityGranted,
                     action: { permissions.requestAccessibility() }
                 )

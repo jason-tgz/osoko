@@ -162,15 +162,11 @@ public final class ScreenshotCaptureService {
         ScreenshotInbox.restore()
     }
 
-    /// Starts global shortcut monitor for Command + Shift + S and Command + Option + S.
+    /// Starts global shortcut monitor for Command + Option + S (Window snip).
     public func startGlobalShortcutMonitor() {
         guard globalKeyMonitor == nil else { return }
         globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            // Command + Shift + S (Interactive crosshair snip)
-            if flags == [.command, .shift], event.charactersIgnoringModifiers?.lowercased() == "s" {
-                Task { @MainActor in self?.captureInteractive() }
-            }
             // Command + Option + S (Window snip)
             if flags == [.command, .option], event.charactersIgnoringModifiers?.lowercased() == "s" {
                 Task { @MainActor in self?.captureWindow() }

@@ -21,7 +21,7 @@ public final class OsokoAppDelegate: NSObject, NSApplicationDelegate, NSMenuDele
         // 2. Start directory watchers and inbox redirection
         captureService.startWatchers()
 
-        // 3. Start global hotkey monitoring (⌘⇧S, ⌥⌘S)
+        // 3. Start global hotkey monitoring (⌥⌘S)
         captureService.startGlobalShortcutMonitor()
 
         // 4. Configure menu bar icon visibility based on user preferences
@@ -93,7 +93,7 @@ public final class OsokoAppDelegate: NSObject, NSApplicationDelegate, NSMenuDele
             menu.addItem(.separator())
         }
 
-        let snipItem = NSMenuItem(title: "Snip Screenshot (⌘⇧S)", action: #selector(snipAction), keyEquivalent: "")
+        let snipItem = NSMenuItem(title: "Snip Selection (⌘⇧4)", action: #selector(snipAction), keyEquivalent: "")
         snipItem.target = self
         menu.addItem(snipItem)
 

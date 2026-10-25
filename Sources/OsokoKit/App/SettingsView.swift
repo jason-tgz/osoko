@@ -100,10 +100,9 @@ public struct SettingsView: View {
     private var shortcutsTab: some View {
         Form {
             Section {
-                shortcutRow(title: "Interactive Snip", keys: "⌘ ⇧ S")
-                shortcutRow(title: "Window Snip", keys: "⌥ ⌘ S")
                 shortcutRow(title: "macOS Selection (Intercepted)", keys: "⌘ ⇧ 4")
                 shortcutRow(title: "macOS Capture Utility (Intercepted)", keys: "⌘ ⇧ 5")
+                shortcutRow(title: "Window Snip", keys: "⌥ ⌘ S")
             } header: {
                 Text("Keyboard Shortcuts")
             }
@@ -118,7 +117,7 @@ public struct SettingsView: View {
 
                 permissionStatusRow(
                     title: "Accessibility",
-                    description: "Enables global hotkeys (⌘⇧S) and bottom-edge slide-out.",
+                    description: "Enables global hotkeys (⌥⌘S) and bottom-edge slide-out.",
                     isGranted: permissions.isAccessibilityGranted,
                     action: { permissions.requestAccessibility() }
                 )

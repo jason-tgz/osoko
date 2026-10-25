@@ -36,7 +36,7 @@ public struct ScreenshotStackView: View {
                                 .frame(width: 24, height: 24)
                         }
                         .buttonStyle(.plain)
-                        .help("Take new screenshot (⌘⇧S)")
+                        .help("Take new screenshot (⌘⇧4)")
 
                         if stack.items.count >= 2 {
                             Button(action: {
