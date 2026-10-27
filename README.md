@@ -35,31 +35,18 @@
 
 ---
 
-## The Problem with macOS Screenshots
+## Why Osoko?
 
-Whenever you take a screenshot on a Mac (`⌘⇧4`), you almost always only need it for 10 seconds:
-- Dropping a UI bug into Slack or Linear
-- Pasting a snippet into a GitHub PR or ChatGPT
-- Sending a meme to a friend on Discord
-- Copying an error message or tracking number from an image
+Most screenshots are temporary: you take one quickly to drop into Slack, paste into a PR or chat, or copy a line of text, and you never need the file again.
 
-**What macOS does instead:**
-1. It dumps a raw `.png` file straight onto your Desktop.
-2. If you take 10 screenshots during a work session, your Desktop becomes littered with files named `Screenshot 2024-10-27 at 11.02.45 AM.png`.
-3. A week later, you have 80 meaningless files on your Desktop that you have to manually select, review, and delete.
-4. If you turn on Apple's built-in "floating thumbnail", it only shows one screenshot at a time, disappears before you finish switching windows, and blocks buttons underneath it.
+By default, macOS saves every capture directly to your Desktop, meaning you regularly have to go in and delete old screenshots. Apple's built-in floating thumbnail also only holds one capture at a time, disappears quickly, and can get in the way of clicks.
 
----
-
-## How Osoko Fixes It
-
-Osoko intercepts your normal `⌘⇧4` and `⌘⇧5` shortcuts and acts as a **temporary holding shelf**:
-
-1. **You take a screenshot (`⌘⇧4`):** Nothing touches your Desktop. The capture drops into a compact floating card stack in the corner of your screen.
-2. **Drag & drop anywhere:** Drag the card directly into Slack, Figma, Discord, GitHub, Chrome, or Finder. Once dropped, Osoko cleans up the temporary file automatically.
-3. **Copy text instantly (OCR):** Click the viewfinder icon on any card to extract text, URLs, or code straight to your clipboard using Apple's Vision framework (under 0.15s).
-4. **Auto-collapses when you're busy:** If you don't touch the stack for 10 seconds, it tucks itself off the edge of the screen so it's never in your way. Just bump your mouse cursor against the bottom-right edge to slide it back out.
-5. **Actually want to save it?** Click the download button or right-click **"Save As..."** to give the file an actual name and save it to your folder of choice.
+**Osoko replaces that with a temporary holding shelf:**
+1. **Desktop stays clean:** `⌘⇧4` and `⌘⇧5` captures route straight into a floating corner stack instead of saving to your Desktop.
+2. **Drag & drop:** Drag cards directly into Slack, Figma, Discord, GitHub, or any other app. Osoko cleans up the temporary file automatically once dropped.
+3. **Copy text (OCR):** Click the OCR icon on any card to copy text, links, or code to your clipboard in ~0.1s.
+4. **Out of your way:** If you don't touch the stack, it auto-collapses off-screen after 10 seconds. Move your mouse to the bottom-right corner to bring it back.
+5. **Save when you want to:** If you actually want to keep a file, click download or right-click to save and rename it.
 
 ---
 
