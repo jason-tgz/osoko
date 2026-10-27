@@ -97,7 +97,17 @@ Open settings by:
 
 ---
 
-## 🛠️ Building & Packaging
+## 📥 Download & Install
+
+Download the pre-built installer from the [Releases](https://github.com/lostmusician/osoko/releases) page:
+
+1. Download **`Osoko.dmg`** (or `Osoko.zip`).
+2. Open the DMG and drag **Osoko** into `/Applications`.
+3. Launch Osoko. *(On first launch, if prompted by macOS Gatekeeper, right-click `Osoko.app` &rarr; select **Open**, or click **Open Anyway** in **System Settings &rarr; Privacy & Security**).*
+
+---
+
+## 🛠️ Build from Source
 
 ### Requirements
 - macOS 14.0 (Sonoma) or newer
@@ -110,12 +120,12 @@ Run the release packaging script:
 ./scripts/package.sh
 ```
 
-This compiles a release build, signs the bundle with your local certificate, and outputs:
+This compiles a release build, signs the bundle, and outputs:
 - **`dist/Osoko.app`**
-- **`dist/Osoko.dmg`** (Drag-to-Applications installer)
+- **`dist/Osoko.dmg`** (Drag-to-Applications disk image)
 - **`dist/Osoko.zip`**
 
-To run or install:
+To run locally:
 ```bash
 cp -R dist/Osoko.app /Applications/
 open /Applications/Osoko.app
