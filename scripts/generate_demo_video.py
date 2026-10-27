@@ -70,9 +70,8 @@ def create_desktop_base():
         draw.text((mx, 6), m, font=font_badge, fill=(200, 205, 220, 200))
         mx += 45
 
-    # Right status items: Osoko Camera Icon, Control Center, Time
-    # Osoko tiny camera icon
-    draw.text((WIDTH - 150, 6), "📷", font=font_badge, fill=(0, 210, 255, 230))
+    # Right status items: Osoko Status Icon, Control Center, Time
+    draw.text((WIDTH - 150, 6), "⛶", font=font_badge, fill=(0, 210, 255, 240))
     draw.text((WIDTH - 120, 6), "Wi-Fi", font=font_badge, fill=(180, 185, 200, 180))
     draw.text((WIDTH - 70, 6), "9:41 AM", font=font_badge, fill=(240, 240, 245, 220))
 
@@ -320,8 +319,8 @@ def render_frame(frame_idx):
     # PHASE 2 (2.6s - 5.5s): Slide Into Floating Specular Stack
     # ========================================================
     elif t < 5.5:
-        caption_title = "Floating Specular Shelf"
-        caption_sub = "Transient corner cards keep your desktop 100% clean"
+        caption_title = "Floating Corner Stack"
+        caption_sub = "Temporary cards keep your desktop 100% clean"
         p = (t - 2.6) / 2.9
         
         # First card slides in from right
