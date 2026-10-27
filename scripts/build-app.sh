@@ -20,6 +20,9 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 cp "$BIN_DIR/Osoko" "$APP/Contents/MacOS/Osoko"
 cp "$ROOT/packaging/Info.plist" "$APP/Contents/Info.plist"
+if [ -f "$ROOT/packaging/AppIcon.icns" ]; then
+    cp "$ROOT/packaging/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
+fi
 
 for bundle in "$BIN_DIR"/*.bundle; do
     [ -d "$bundle" ] || continue

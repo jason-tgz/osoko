@@ -6,3 +6,5 @@ dist/
 *.xcworkspace
 xcuserdata/
 DerivedData/
+__pycache__/
+*.pyc
