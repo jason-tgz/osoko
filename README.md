@@ -39,17 +39,52 @@
 
 Most screenshots are temporary: you take one quickly to drop into Slack, paste into a PR or chat, or copy a line of text, and you never need the file again.
 
-By default, macOS saves every capture directly to your Desktop, meaning you regularly have to go in and delete old screenshots. Apple's built-in floating thumbnail also only holds one capture at a time, disappears quickly, and can get in the way of clicks.
+By default, macOS saves every capture directly to your Desktop, creating constant clutter. Apple's built-in floating thumbnail only holds one capture at a time, disappears quickly, and gets in the way of clicks. Osoko replaces that with an ephemeral floating shelf.
 
-**Osoko replaces that with a temporary holding shelf:**
-1. **Desktop stays clean:** `⌘⇧4` and `⌘⇧5` captures route straight into a floating corner stack instead of saving to your Desktop.
-2. **Drag & drop:** Drag cards directly into Slack, Figma, Discord, GitHub, or any other app. Osoko cleans up the temporary file automatically once dropped.
-3. **Copy 1x Downscaled:** Halves Retina `@2x` dimensions so images paste at normal size in Slack, Jira, and GitHub markdown without blowing out widths or eating 10MB of data.
-4. **Copy text (OCR):** Click the OCR icon on any card to copy text, links, or code to your clipboard in ~0.1s.
-5. **Smart QR & Barcode Detection:** Native Apple Vision automatically recognizes QR codes on screen and gives you a 1-click link to open or copy.
-6. **Privacy Shield (Auto-Redact):** 1-click (or tap `R`) to black out detected API keys (`sk-...`, GitHub/AWS tokens), emails, passwords, and tokens with solid black bars.
-7. **Out of your way:** If you don't touch the stack, it auto-collapses off-screen after 10 seconds. Move your mouse to the bottom-right corner to bring it back.
-8. **Save when you want to:** If you actually want to keep a file, click download or right-click to save and rename it.
+---
+
+## ✨ Features in Action
+
+### 📋 Copy & Paste Image
+<p align="center">
+  <a href="assets/feature-copy-image.mp4">
+    <img src="assets/feature-copy-image.gif" alt="Copy and Paste Image" width="100%">
+  </a>
+</p>
+
+### 🖱️ Drag & Drop
+<p align="center">
+  <a href="assets/feature-drag.mp4">
+    <img src="assets/feature-drag.gif" alt="Drag & Drop" width="100%">
+  </a>
+</p>
+
+### 🔍 Copy Text (OCR)
+<p align="center">
+  <a href="assets/feature-copy-text.mp4">
+    <img src="assets/feature-copy-text.gif" alt="Copy Text OCR" width="100%">
+  </a>
+</p>
+
+### 📌 Pin to Screen
+<p align="center">
+  <a href="assets/feature-pin.mp4">
+    <img src="assets/feature-pin.gif" alt="Pin Card" width="100%">
+  </a>
+</p>
+
+### ↗️ Native Share
+<p align="center">
+  <a href="assets/feature-share.mp4">
+    <img src="assets/feature-share.gif" alt="Native macOS Share" width="100%">
+  </a>
+</p>
+
+### 🛡️ More Superpowers
+* **Privacy Shield (Auto-Redact):** Tap `R` to automatically black out detected API keys, credentials, and emails with solid black bars.
+* **Smart QR & Barcode Detection:** Tap `L` to open or copy QR links recognized on screen.
+* **Auto-Collapse Shelf:** Automatically tucks off-screen when idle after 10 seconds so it never blocks clicks.
+* **Desktop Stays Clean:** `⌘⇧4` and `⌘⇧5` captures route straight into the floating stack instead of saving files to your desktop.
 
 ---
 
