@@ -12,9 +12,16 @@
   <a href="#download-and-get-started">Download</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#shortcuts">Shortcuts</a> ·
+  <a href="#support">Support</a> ·
   <a href="#on-device-and-private">Privacy</a> ·
   <a href="https://github.com/lostmusician/osoko/issues">Issues</a> ·
   <a href="#license">License</a>
+</p>
+
+<p align="center">
+  <a href="https://ko-fi.com/chivan">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support on Ko-fi" height="30">
+  </a>
 </p>
 
 By default, macOS saves every capture directly to your Desktop, while you could change it to automatically copy them into your clipboard, I still found that it didn't quite suit my needs. So I decided to build my own...
@@ -96,11 +103,11 @@ When first opened, Osoko requests two standard macOS permissions:
 - **Zero telemetry.** No analytics, no tracking, and zero network calls.
 - **Automatic cleanup.** Captures exist in a temporary sandbox directory and are cleaned up when dropped, dismissed, or restarted.
 
-## Support and pricing
+## Support
 
-Osoko is 100% open source under the MIT License and free to install via Homebrew or build from source.
+Osoko is 100% open source under the MIT License and free to use.
 
-If you find Osoko useful and want to support ongoing maintenance against future macOS releases, you can purchase a pre-built DMG for **$4.99** on [Gumroad](https://gumroad.com).
+If you find Osoko useful and want to support ongoing development (or help fund an Apple Developer membership for notarized builds), you can [support on Ko-fi](https://ko-fi.com/chivan).
 
 ## Development
 
