@@ -19,21 +19,39 @@
 
 By default, macOS saves every capture directly to your Desktop, while you could change it to automatically copy them into your clipboard, I still found that it didn't quite suit my needs. So I decided to build my own...
 
-Osoko stores your screnshots in a lightweight stack where you can drag them anywhere, copy them, extract text with local OCR, and let them collapse away for a clean look.
+Osoko stores your screenshots in a lightweight stack where you can drag them anywhere, copy them, extract text with local OCR, and let them collapse away for a clean look.
 
 <p align="center">
   <a href="assets/demo.mp4">
-    <img src="assets/demo.gif" alt="Osoko demo" width="100%">
+    <img src="assets/demo.gif" alt="Osoko demo" width="640">
   </a>
 </p>
 
 ## How it works
 
 1. **Capture.** Press `⌘⇧3` or `⌘⇧4` as you normally would. Osoko catches your capture into a floating stack instead of saving a file to your Desktop.
-2. **Drag or paste.** Drag cards directly into any app ([demo](assets/feature-drag.mp4)). Osoko cleans up the temporary file automatically once dropped. You can also hover and press `1` to copy a 1x downscaled image ([demo](assets/feature-copy-image.mp4)) so Retina `@2x` captures don't blow out chat widths.
-3. **Extract text and links.** Native Apple Vision runs on-device OCR in milliseconds. Hover over a card and press `T` to copy recognized text ([demo](assets/feature-copy-text.mp4)). If an item contains a QR code, a quick-action pill lets you open or copy the URL with `L`.
+
+2. **Drag or paste.** Drag cards directly into any app. Osoko cleans up the temporary file automatically once dropped. You can also hover and press `1` to copy a 1x downscaled image so Retina `@2x` captures don't blow out chat widths.
+<p align="center">
+  <a href="assets/feature-drag.mp4"><img src="assets/feature-drag.gif" alt="Drag and drop" width="310"></a>
+  &nbsp;&nbsp;
+  <a href="assets/feature-copy-image.mp4"><img src="assets/feature-copy-image.gif" alt="Copy 1x image" width="310"></a>
+</p>
+
+3. **Extract text and links.** Native Apple Vision runs on-device OCR in milliseconds. Hover over a card and press `T` to copy recognized text. If an item contains a QR code, a quick-action pill lets you open or copy the URL with `L`.
+<p align="center">
+  <a href="assets/feature-copy-text.mp4"><img src="assets/feature-copy-text.gif" alt="Extract text" width="460"></a>
+</p>
+
 4. **Redact sensitive information.** Press `R` to automatically detect and black out API keys, tokens, emails, and credentials with solid bars before sharing.
-5. **Pin or share.** Press `P` on any card to pin it so it stays visible while you reference it ([demo](assets/feature-pin.mp4)), or share directly through the native macOS Share menu ([demo](assets/feature-share.mp4)).
+
+5. **Pin or share.** Press `P` on any card to pin it so it stays visible while you reference it, or share directly through the native macOS Share menu.
+<p align="center">
+  <a href="assets/feature-pin.mp4"><img src="assets/feature-pin.gif" alt="Pin card" width="310"></a>
+  &nbsp;&nbsp;
+  <a href="assets/feature-share.mp4"><img src="assets/feature-share.gif" alt="Native share" width="310"></a>
+</p>
+
 6. **Fade away.** If you don't interact with the stack, it auto-collapses off-screen. Move your cursor to the corner or take another screenshot to bring it back.
 
 **Hover shortcuts.** Osoko runs as a headless menu bar agent (`LSUIElement`) with no dock icon. You can trigger every common action simply by hovering over a card and pressing a single key—no clicking required.
