@@ -20,12 +20,17 @@ public struct SettingsView: View {
                     Label("Shortcuts & Permissions", systemImage: "keyboard")
                 }
 
+            actionsTab
+                .tabItem {
+                    Label("Actions & Toolbar", systemImage: "slider.horizontal.3")
+                }
+
             aboutTab
                 .tabItem {
                     Label("About", systemImage: "info.circle")
                 }
         }
-        .frame(width: 500, height: 490)
+        .frame(width: 500, height: 540)
         .padding(20)
         .onAppear {
             permissions.refreshStatus()
@@ -148,6 +153,87 @@ public struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    // MARK: - Actions & Toolbar Tab
+    private var actionsTab: some View {
+        Form {
+            Section {
+                Picker("Top-Right Slot 1", selection: $settings.topActionSlot1) {
+                    actionOptions
+                }
+                .pickerStyle(.menu)
+
+                Picker("Top-Right Slot 2", selection: $settings.topActionSlot2) {
+                    actionOptions
+                }
+                .pickerStyle(.menu)
+            } header: {
+                Text("Card Toolbar — Top Row")
+            } footer: {
+                Text("The top-left close button is always available. Set a slot to “None (Hidden)” to hide it.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Picker("Bottom-Right Slot 1", selection: $settings.bottomActionSlot1) {
+                    actionOptions
+                }
+                .pickerStyle(.menu)
+
+                Picker("Bottom-Right Slot 2", selection: $settings.bottomActionSlot2) {
+                    actionOptions
+                }
+                .pickerStyle(.menu)
+            } header: {
+                Text("Card Toolbar — Bottom Row")
+            } footer: {
+                Text("The dimensions badge is always shown on the bottom-left.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Picker("Single Click", selection: $settings.primaryClickAction) {
+                    actionOptions
+                }
+                .pickerStyle(.menu)
+
+                Picker("Double Click", selection: $settings.doubleClickAction) {
+                    actionOptions
+                }
+                .pickerStyle(.menu)
+            } header: {
+                Text("Click Gestures")
+            } footer: {
+                Text("These actions run when you click or double-click the body of a screenshot card.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Toggle(
+                    "Enable single-key shortcuts when hovering stack (1, 2, T, S, P, L, R, Space, ⌫)",
+                    isOn: $settings.enableHoverShortcuts
+                )
+
+                Text("1 copies 1x, 2/C copies the original, T extracts text, S saves (⇧/⌥ for Save As), P pins, L opens a detected QR link, R redacts sensitive data, Space opens, and ⌫ deletes.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Hover Shortcuts")
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    @ViewBuilder
+    private var actionOptions: some View {
+        ForEach(CardActionKind.allCases) { action in
+            Label(action.displayName, systemImage: action.iconName)
+                .tag(action)
+        }
     }
 
     // MARK: - About Tab

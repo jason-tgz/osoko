@@ -3,15 +3,20 @@ import SwiftUI
 
 public enum ScreenshotButtonKind: Sendable, Equatable {
     case close
-    case save
-    case pin
-    case ocr
-    case share
+    case action(CardActionKind)
+}
+
+private func isWebLink(_ payload: String) -> Bool {
+    guard let url = URL(string: payload) else { return false }
+    let scheme = url.scheme?.lowercased()
+    return scheme == "http" || scheme == "https"
 }
 
 struct ScreenshotGrabArea: NSViewRepresentable {
     let item: ScreenshotItem
     let stack: ScreenshotStack
+    let topActions: [CardActionKind]
+    let bottomActions: [CardActionKind]
 
     func makeNSView(context: Context) -> ScreenshotGrabView {
         let view = ScreenshotGrabView()
@@ -29,14 +34,21 @@ struct ScreenshotGrabArea: NSViewRepresentable {
         view.url = item.url
         view.dragImage = item.thumbnail
         view.isPinned = item.isPinned
-        view.onClick = { stack.copy(id: id) }
-        view.onDoubleClick = { stack.openInDefaultApp(id: id) }
+        view.detectedBarcode = item.detectedBarcode
+        view.topActions = topActions
+        view.bottomActions = bottomActions
+        view.onClick = {
+            stack.executeAction(OsokoSettings.shared.primaryClickAction, id: id)
+        }
+        view.onDoubleClick = {
+            stack.executeAction(OsokoSettings.shared.doubleClickAction, id: id)
+        }
+        view.onAction = { [weak view] action in
+            guard let view else { return }
+            stack.executeAction(action, id: id, grabView: view)
+        }
         view.onDropIntoApp = { stack.consumeDrop(id: id) }
         view.onRemove = { stack.remove(id: id) }
-        view.onSaveToDesktop = { stack.saveToLocation(id: id) }
-        view.onSaveAs = { stack.saveAs(id: id) }
-        view.onCopyText = { stack.copyText(id: id) }
-        view.onTogglePin = { stack.togglePin(id: id) }
         view.onReveal = { stack.revealInFinder(id: id) }
         view.onClearStack = { stack.clearAll() }
         view.onOpenSettings = {
@@ -48,7 +60,15 @@ struct ScreenshotGrabArea: NSViewRepresentable {
         view.menuProvider = {
             let menu = NSMenu()
             menu.addItem(NSMenuItem(title: "Copy Image", action: #selector(ScreenshotGrabView.menuCopy), keyEquivalent: "c"))
+            menu.addItem(NSMenuItem(title: "Copy 1x Downscaled", action: #selector(ScreenshotGrabView.menuCopyDownscaled), keyEquivalent: "1"))
             menu.addItem(NSMenuItem(title: "Copy Text (OCR)", action: #selector(ScreenshotGrabView.menuOCR), keyEquivalent: "t"))
+            menu.addItem(NSMenuItem(title: "Redact Sensitive Data", action: #selector(ScreenshotGrabView.menuRedact), keyEquivalent: "r"))
+            if let barcode = item.detectedBarcode, !barcode.isEmpty {
+                if isWebLink(barcode) {
+                    menu.addItem(NSMenuItem(title: "Open QR Code Link", action: #selector(ScreenshotGrabView.menuOpenQRLink), keyEquivalent: "l"))
+                }
+                menu.addItem(NSMenuItem(title: "Copy QR Code Link", action: #selector(ScreenshotGrabView.menuCopyQRLink), keyEquivalent: ""))
+            }
             menu.addItem(.separator())
             menu.addItem(NSMenuItem(title: "Save to Location", action: #selector(ScreenshotGrabView.menuSave), keyEquivalent: "s"))
             let saveAsItem = NSMenuItem(title: "Save As... (Rename)", action: #selector(ScreenshotGrabView.menuSaveAs), keyEquivalent: "S")
@@ -69,6 +89,7 @@ struct ScreenshotGrabArea: NSViewRepresentable {
             menu.addItem(NSMenuItem(title: "Quit Osoko", action: #selector(ScreenshotGrabView.menuQuit), keyEquivalent: "q"))
             return menu
         }
+        view.window?.invalidateCursorRects(for: view)
     }
 }
 
@@ -78,14 +99,15 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
     var url: URL?
     var dragImage: NSImage?
     var isPinned: Bool = false
+    var detectedBarcode: String?
+    var topActions: [CardActionKind] = []
+    var bottomActions: [CardActionKind] = []
+
     var onClick: () -> Void = {}
     var onDoubleClick: () -> Void = {}
+    var onAction: (CardActionKind) -> Void = { _ in }
     var onDropIntoApp: () -> Void = {}
     var onRemove: () -> Void = {}
-    var onSaveToDesktop: () -> Void = {}
-    var onSaveAs: () -> Void = {}
-    var onCopyText: () -> Void = {}
-    var onTogglePin: () -> Void = {}
     var onReveal: () -> Void = {}
     var onClearStack: () -> Void = {}
     var onOpenSettings: () -> Void = {}
@@ -94,8 +116,103 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
 
     private var downPoint: NSPoint?
     private var startedDrag = false
+    private var hoverTrackingArea: NSTrackingArea?
+    private var isMouseInside = false
+    private var globalKeyMonitor: Any?
+    private var localKeyMonitor: Any?
+
+    override var acceptsFirstResponder: Bool { true }
 
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    // MARK: - Hover Tracking
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+
+        if let hoverTrackingArea {
+            removeTrackingArea(hoverTrackingArea)
+        }
+
+        let area = NSTrackingArea(
+            rect: .zero,
+            options: [.mouseEnteredAndExited, .mouseMoved, .activeAlways, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(area)
+        hoverTrackingArea = area
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        super.mouseEntered(with: event)
+        isMouseInside = true
+        if OsokoSettings.shared.enableHoverShortcuts {
+            window?.makeKey()
+            window?.makeFirstResponder(self)
+            startKeyMonitor()
+        }
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        super.mouseMoved(with: event)
+        if !isMouseInside {
+            isMouseInside = true
+            if OsokoSettings.shared.enableHoverShortcuts {
+                window?.makeKey()
+                window?.makeFirstResponder(self)
+                startKeyMonitor()
+            }
+        }
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        super.mouseExited(with: event)
+        isMouseInside = false
+        stopKeyMonitor()
+        if window?.firstResponder === self {
+            window?.makeFirstResponder(nil)
+        }
+    }
+
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        super.viewWillMove(toWindow: newWindow)
+        if newWindow == nil {
+            stopKeyMonitor()
+        }
+    }
+
+    private func startKeyMonitor() {
+        if globalKeyMonitor == nil {
+            globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                Task { @MainActor [weak self] in
+                    _ = self?.handleShortcut(event: event)
+                }
+            }
+        }
+        if localKeyMonitor == nil {
+            localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+                guard let self, self.isMouseInside else { return event }
+                if self.handleShortcut(event: event) {
+                    return nil
+                }
+                return event
+            }
+        }
+    }
+
+    private func stopKeyMonitor() {
+        if let globalKeyMonitor {
+            NSEvent.removeMonitor(globalKeyMonitor)
+            self.globalKeyMonitor = nil
+        }
+        if let localKeyMonitor {
+            NSEvent.removeMonitor(localKeyMonitor)
+            self.localKeyMonitor = nil
+        }
+    }
+
+    // MARK: - Hit Testing
 
     func actionZone(at p: NSPoint) -> ScreenshotButtonKind? {
         let w = bounds.width
@@ -103,31 +220,51 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
         guard w > 0, h > 0 else { return nil }
 
         // Top-left: Close button (x: 0...36, y: 0...34)
-        if NSRect(x: 0, y: 0, width: 36, height: 34).contains(p) {
+        if closeButtonRect.contains(p) {
             return .close
         }
 
-        // Top-right: Pin button (x: w - 34...w, y: 0...34)
-        if NSRect(x: w - 34, y: 0, width: 34, height: 34).contains(p) {
-            return .pin
+        // Top-right: configured action slots, ordered slot 1 then slot 2.
+        if let action = action(at: p, in: topActions, width: w, height: h, isTop: true) {
+            return .action(action)
         }
 
-        // Top-right: Save button (x: w - 68...w - 34, y: 0...34)
-        if NSRect(x: w - 68, y: 0, width: 34, height: 34).contains(p) {
-            return .save
-        }
-
-        // Bottom-right: Share button (x: w - 34...w, y: max(0, h - 34)...h)
-        if NSRect(x: w - 34, y: max(0, h - 34), width: 34, height: 34).contains(p) {
-            return .share
-        }
-
-        // Bottom-right adjacent: OCR button (x: w - 68...w - 34, y: max(0, h - 34)...h)
-        if NSRect(x: w - 68, y: max(0, h - 34), width: 34, height: 34).contains(p) {
-            return .ocr
+        // Bottom-right: configured action slots, ordered slot 1 then slot 2.
+        if let action = action(at: p, in: bottomActions, width: w, height: h, isTop: false) {
+            return .action(action)
         }
 
         return nil
+    }
+
+    private var closeButtonRect: NSRect {
+        NSRect(x: 0, y: 0, width: 36, height: 34)
+    }
+
+    private func actionRects(in actions: [CardActionKind], width w: CGFloat, height h: CGFloat, isTop: Bool) -> [(CardActionKind, NSRect)] {
+        let active = actions.filter { $0 != .none }
+        guard !active.isEmpty else { return [] }
+
+        let y = isTop ? 0 : max(0, h - 34)
+        let count = CGFloat(active.count)
+
+        return active.enumerated().map { index, action in
+            let rightEdge = w - 34 * (count - CGFloat(index) - 1)
+            let rect = NSRect(x: rightEdge - 34, y: y, width: 34, height: 34)
+            return (action, rect)
+        }
+    }
+
+    private func action(
+        at p: NSPoint,
+        in actions: [CardActionKind],
+        width w: CGFloat,
+        height h: CGFloat,
+        isTop: Bool
+    ) -> CardActionKind? {
+        actionRects(in: actions, width: w, height: h, isTop: isTop)
+            .first(where: { $0.1.contains(p) })?
+            .0
     }
 
     override func resetCursorRects() {
@@ -136,12 +273,16 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
         let h = bounds.height
         guard w > 0, h > 0 else { return }
 
-        addCursorRect(NSRect(x: 0, y: 0, width: 36, height: 34), cursor: .pointingHand)
-        addCursorRect(NSRect(x: w - 68, y: 0, width: 34, height: 34), cursor: .pointingHand)
-        addCursorRect(NSRect(x: w - 34, y: 0, width: 34, height: 34), cursor: .pointingHand)
-        addCursorRect(NSRect(x: w - 68, y: max(0, h - 34), width: 34, height: 34), cursor: .pointingHand)
-        addCursorRect(NSRect(x: w - 34, y: max(0, h - 34), width: 34, height: 34), cursor: .pointingHand)
+        addCursorRect(closeButtonRect, cursor: .pointingHand)
+        for (_, rect) in actionRects(in: topActions, width: w, height: h, isTop: true) {
+            addCursorRect(rect, cursor: .pointingHand)
+        }
+        for (_, rect) in actionRects(in: bottomActions, width: w, height: h, isTop: false) {
+            addCursorRect(rect, cursor: .pointingHand)
+        }
     }
+
+    // MARK: - Mouse Events
 
     override func mouseDown(with event: NSEvent) {
         let p = convert(event.locationInWindow, from: nil)
@@ -151,24 +292,10 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
             switch zone {
             case .close:
                 onRemove()
-                return
-            case .save:
-                if event.modifierFlags.contains(.option) {
-                    onSaveAs()
-                } else {
-                    onSaveToDesktop()
-                }
-                return
-            case .pin:
-                onTogglePin()
-                return
-            case .ocr:
-                onCopyText()
-                return
-            case .share:
-                showShareMenu()
-                return
+            case .action(let action):
+                onAction(action)
             }
+            return
         }
 
         if event.clickCount == 2 {
@@ -217,13 +344,88 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
         NSMenu.popUpContextMenu(menu, with: event, for: self)
     }
 
-    @objc func menuCopy() { onClick() }
-    @objc func menuOCR() { onCopyText() }
-    @objc func menuSave() { onSaveToDesktop() }
-    @objc func menuSaveAs() { onSaveAs() }
-    @objc func menuShare() { showShareMenu() }
-    @objc func menuTogglePin() { onTogglePin() }
-    @objc func menuOpen() { onDoubleClick() }
+    // MARK: - Keyboard Shortcuts
+
+    override func keyDown(with event: NSEvent) {
+        if handleShortcut(event: event) {
+            return
+        }
+        super.keyDown(with: event)
+    }
+
+    @discardableResult
+    private func handleShortcut(event: NSEvent) -> Bool {
+        guard OsokoSettings.shared.enableHoverShortcuts else { return false }
+        guard !event.modifierFlags.contains(.command) else { return false }
+
+        // The global monitor fires while another application is focused, so make
+        // sure the pointer is actually over this specific card before acting.
+        let mouseLocation = NSEvent.mouseLocation
+        if let window = self.window {
+            let windowPoint = window.convertPoint(fromScreen: mouseLocation)
+            let viewPoint = self.convert(windowPoint, from: nil)
+            guard self.bounds.contains(viewPoint) else { return false }
+        } else if !isMouseInside {
+            return false
+        }
+
+        let key = (event.charactersIgnoringModifiers ?? "").lowercased()
+        switch key {
+        case "1":
+            onAction(.copyDownscaled)
+            return true
+        case "2", "c":
+            onAction(.copyOriginal)
+            return true
+        case "t":
+            onAction(.copyOCR)
+            return true
+        case "r":
+            onAction(.redactSensitive)
+            return true
+        case "l":
+            if let barcode = detectedBarcode,
+               !barcode.isEmpty,
+               isWebLink(barcode) {
+                onAction(.openQRLink)
+            } else {
+                onAction(.copyQRLink)
+            }
+            return true
+        case "s":
+            if event.modifierFlags.contains(.shift) || event.modifierFlags.contains(.option) {
+                onAction(.saveAs)
+            } else {
+                onAction(.saveToFolder)
+            }
+            return true
+        case "p":
+            onAction(.pin)
+            return true
+        case " ":
+            onAction(.openInPreview)
+            return true
+        case "\u{7f}", "\u{08}":
+            onRemove()
+            return true
+        default:
+            return false
+        }
+    }
+
+    // MARK: - Menu Actions
+
+    @objc func menuCopy() { onAction(.copyOriginal) }
+    @objc func menuCopyDownscaled() { onAction(.copyDownscaled) }
+    @objc func menuOCR() { onAction(.copyOCR) }
+    @objc func menuRedact() { onAction(.redactSensitive) }
+    @objc func menuCopyQRLink() { onAction(.copyQRLink) }
+    @objc func menuOpenQRLink() { onAction(.openQRLink) }
+    @objc func menuSave() { onAction(.saveToFolder) }
+    @objc func menuSaveAs() { onAction(.saveAs) }
+    @objc func menuShare() { onAction(.share) }
+    @objc func menuTogglePin() { onAction(.pin) }
+    @objc func menuOpen() { onAction(.openInPreview) }
     @objc func menuReveal() { onReveal() }
     @objc func menuDelete() { onRemove() }
     @objc func menuSettings() { onOpenSettings() }

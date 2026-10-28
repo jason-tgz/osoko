@@ -21,7 +21,7 @@ public final class ScreenshotStackPanel: NSPanel {
         backgroundColor = .clear
         hasShadow = false
         level = .floating
-        sharingType = .none // Exclude floating stack from new screencaptures!
+        sharingType = .readOnly // Temporarily set to .readOnly for demo screen recording (default was .none)
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         hidesOnDeactivate = false
         isMovable = false
@@ -32,7 +32,7 @@ public final class ScreenshotStackPanel: NSPanel {
         observeStack()
     }
 
-    override public var canBecomeKey: Bool { false }
+    override public var canBecomeKey: Bool { true }
     override public var canBecomeMain: Bool { false }
 
     private func observeStack() {

@@ -62,6 +62,18 @@ public final class ScreenshotStack: ObservableObject {
         // Pre-warm OCR recognition in background so copying text is instantaneous
         TextRecognitionService.prewarm(imageURL: resolvedURL)
 
+        // Detect QR codes and barcodes in the background
+        BarcodeDetectionService.prewarm(imageURL: resolvedURL)
+        let itemID = item.id
+        Task.detached { [weak self] in
+            guard let payload = try? await BarcodeDetectionService.detectBarcode(from: resolvedURL) else { return }
+            await MainActor.run {
+                guard let self,
+                      let index = self.items.firstIndex(where: { $0.id == itemID }) else { return }
+                self.items[index].detectedBarcode = payload
+            }
+        }
+
         // If auto-copy is enabled, copy immediately
         if OsokoSettings.shared.autoCopyToClipboard {
             copy(id: item.id, showToastFeedback: false)
@@ -74,6 +86,7 @@ public final class ScreenshotStack: ObservableObject {
                 if items.count <= maxAllowed { break }
                 if !items[i].isPinned {
                     let old = items.remove(at: i)
+                    BarcodeDetectionService.clearCache(for: old.url)
                     try? FileManager.default.removeItem(at: old.url)
                 }
             }
@@ -89,6 +102,7 @@ public final class ScreenshotStack: ObservableObject {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         let item = items.remove(at: index)
         TextRecognitionService.clearCache(for: item.url)
+        BarcodeDetectionService.clearCache(for: item.url)
         try? FileManager.default.removeItem(at: item.url)
         if items.isEmpty {
             StackCollapseState.shared.stopEdgeMonitoring()
@@ -101,6 +115,8 @@ public final class ScreenshotStack: ObservableObject {
 
         if !items[index].isPinned {
             let item = items.remove(at: index)
+            TextRecognitionService.clearCache(for: item.url)
+            BarcodeDetectionService.clearCache(for: item.url)
             // Deferred cleanup: When dropping into external applications (e.g. ChatGPT, Slack, Discord, Chrome, Finder),
             // the receiving app reads/uploads the file asynchronously AFTER the drag session finishes.
             // If the file is deleted immediately, the app reads 0 bytes and fails.
@@ -156,6 +172,51 @@ public final class ScreenshotStack: ObservableObject {
         }
     }
 
+    /// Copies a 1x (logical resolution) version of the screenshot to the clipboard.
+    public func copyDownscaled(id: UUID, showToastFeedback: Bool = true) {
+        guard let item = items.first(where: { $0.id == id }) else { return }
+
+        if ImageScaler.copyDownscaledToPasteboard(imageAt: item.url) {
+            if showToastFeedback {
+                showToast(id: id, text: "Copied 1x ✓")
+            }
+        } else if showToastFeedback {
+            showToast(id: id, text: "Copy 1x Failed")
+        }
+    }
+
+    /// Dispatches a card action bound to a toolbar slot or click gesture.
+    public func executeAction(_ action: CardActionKind, id: UUID, grabView: Any? = nil) {
+        switch action {
+        case .copyDownscaled:
+            copyDownscaled(id: id)
+        case .copyOriginal:
+            copy(id: id)
+        case .copyOCR:
+            copyText(id: id)
+        case .redactSensitive:
+            copyRedacted(id: id)
+        case .copyQRLink:
+            copyQRLink(id: id)
+        case .openQRLink:
+            openQRLink(id: id)
+        case .saveToFolder:
+            saveToLocation(id: id)
+        case .saveAs:
+            saveAs(id: id)
+        case .pin:
+            togglePin(id: id)
+        case .openInPreview:
+            openInDefaultApp(id: id)
+        case .share:
+            if let grabView = grabView as? ScreenshotGrabView {
+                grabView.showShareMenu()
+            }
+        case .none:
+            break
+        }
+    }
+
     public func copyText(id: UUID) {
         guard let item = items.first(where: { $0.id == id }) else { return }
 
@@ -176,6 +237,60 @@ public final class ScreenshotStack: ObservableObject {
                 self.showToast(id: id, text: "OCR Failed")
             }
         }
+    }
+
+    /// Copies a version of the screenshot with detected sensitive data blacked out.
+    public func copyRedacted(id: UUID) {
+        guard let item = items.first(where: { $0.id == id }) else { return }
+
+        Task { @MainActor in
+            do {
+                let count = try await PrivacyRedactionService.copyRedactedToPasteboard(imageAt: item.url)
+                if count > 0 {
+                    self.showToast(id: id, text: "Redacted (\(count)) ✓")
+                } else {
+                    self.showToast(id: id, text: "No Sensitive Data")
+                }
+            } catch {
+                self.showToast(id: id, text: "Redaction Failed")
+            }
+        }
+    }
+
+    /// Copies the detected QR/barcode payload to the clipboard.
+    public func copyQRLink(id: UUID) {
+        guard let item = items.first(where: { $0.id == id }) else { return }
+        guard let payload = item.detectedBarcode?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !payload.isEmpty else {
+            showToast(id: id, text: "No QR Code")
+            return
+        }
+
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(payload, forType: .string)
+        showToast(id: id, text: "Link Copied ✓")
+    }
+
+    /// Opens a detected QR web link, or copies the payload when it is not a URL.
+    public func openQRLink(id: UUID) {
+        guard let item = items.first(where: { $0.id == id }) else { return }
+        guard let payload = item.detectedBarcode?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !payload.isEmpty else {
+            showToast(id: id, text: "No QR Code")
+            return
+        }
+
+        let lowercased = payload.lowercased()
+        if lowercased.hasPrefix("http://") || lowercased.hasPrefix("https://"),
+           let url = URL(string: payload) {
+            NSWorkspace.shared.open(url)
+            showToast(id: id, text: "Opening Link...")
+            return
+        }
+
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(payload, forType: .string)
+        showToast(id: id, text: "Barcode Copied ✓")
     }
 
     public func saveAs(id: UUID) {
@@ -278,6 +393,7 @@ public final class ScreenshotStack: ObservableObject {
     public func clearAll() {
         for item in items where !item.isPinned {
             TextRecognitionService.clearCache(for: item.url)
+            BarcodeDetectionService.clearCache(for: item.url)
             try? FileManager.default.removeItem(at: item.url)
         }
         items.removeAll(where: { !$0.isPinned })

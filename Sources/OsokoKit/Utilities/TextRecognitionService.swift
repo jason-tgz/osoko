@@ -20,36 +20,52 @@ public actor TextRecognitionService {
         }
 
         let task = Task.detached(priority: .userInitiated) { () -> String in
-            let request = VNRecognizeTextRequest()
-            request.recognitionLevel = .accurate
-            // Disabling language correction gives a ~150x speedup and prevents
-            // code, URLs, and technical strings from being corrupted by spellcheck.
-            request.usesLanguageCorrection = false
-            request.automaticallyDetectsLanguage = true
+            func makeRequest(useFastRecognition: Bool) -> VNRecognizeTextRequest {
+                let request = VNRecognizeTextRequest()
+                request.recognitionLevel = useFastRecognition ? .fast : .accurate
+                // Disabling language correction gives a ~150x speedup and prevents
+                // code, URLs, and technical strings from being corrupted by spellcheck.
+                request.usesLanguageCorrection = false
+                request.automaticallyDetectsLanguage = true
+                return request
+            }
+
+            func recognizedText(from request: VNRecognizeTextRequest) -> String {
+                guard let observations = request.results else {
+                    return ""
+                }
+
+                // Sort observations top-to-bottom, then left-to-right
+                // Note: In Vision coordinates, y=0 is bottom and y=1 is top
+                let sortedObservations = observations.sorted { a, b in
+                    let yA = a.boundingBox.midY
+                    let yB = b.boundingBox.midY
+                    if abs(yA - yB) > 0.025 {
+                        return yA > yB // Higher Y in Vision is higher on the screen
+                    }
+                    return a.boundingBox.minX < b.boundingBox.minX
+                }
+
+                let recognizedStrings = sortedObservations.compactMap { observation in
+                    observation.topCandidates(1).first?.string
+                }
+
+                return recognizedStrings.joined(separator: "\n")
+            }
 
             let handler = VNImageRequestHandler(url: canonicalURL, options: [:])
-            try handler.perform([request])
+            let request = makeRequest(useFastRecognition: false)
 
-            guard let observations = request.results else {
-                return ""
+            do {
+                try handler.perform([request])
+                return recognizedText(from: request)
+            } catch {
+                // The high-accuracy model is unavailable in some environments
+                // (for example, headless test runners). Fall back to fast OCR.
+                let fallbackRequest = makeRequest(useFastRecognition: true)
+                try handler.perform([fallbackRequest])
+                return recognizedText(from: fallbackRequest)
             }
-
-            // Sort observations top-to-bottom, then left-to-right
-            // Note: In Vision coordinates, y=0 is bottom and y=1 is top
-            let sortedObservations = observations.sorted { a, b in
-                let yA = a.boundingBox.midY
-                let yB = b.boundingBox.midY
-                if abs(yA - yB) > 0.025 {
-                    return yA > yB // Higher Y in Vision is higher on the screen
-                }
-                return a.boundingBox.minX < b.boundingBox.minX
-            }
-
-            let recognizedStrings = sortedObservations.compactMap { observation in
-                observation.topCandidates(1).first?.string
-            }
-
-            return recognizedStrings.joined(separator: "\n")
         }
 
         inFlight[canonicalURL] = task
