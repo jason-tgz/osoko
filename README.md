@@ -53,24 +53,80 @@ By default, macOS saves every capture directly to your Desktop, meaning you regu
 
 ---
 
-## Features
+## 📥 Installation
 
-- **Ghost Background App:** Runs with `LSUIElement = true`. No Dock icon and no `Cmd + Tab` switcher clutter. You can even hide the menu bar icon in Settings if you want a 100% invisible setup.
-- **Retina 1x Downscaler:** Resamples Retina `@2x` captures to logical `@1x` using high-quality CoreGraphics interpolation—preventing giant 200% oversized images in Slack and GitHub PRs.
-- **Smart QR Code Scanner:** Background Apple Vision `VNDetectBarcodesRequest` detects QR codes instantly and shows a green glass indicator pill (`QR: example.com`). Press `L` or click to open or copy.
-- **Privacy Shield & Redaction:** Automatically detects API keys, tokens, emails, and credentials, and stamps solid black bars over them to keep your shared screenshots secure.
-- **Modular Action Slots:** Configure which actions live on the card's 4 toolbar slots (or set unused slots to `None` for an ultra-minimal card).
-- **Fast Vision OCR:** Uses Apple's native `VNRecognizeTextRequest` without slow language-correction dictionaries. It runs in ~130ms, handles code syntax and URLs without autocorrect corrupting words, and pre-warms in the background so copying text is immediate.
-- **Native macOS Share Menu:** Built-in support for AirDrop, Messages, Mail, and Notes directly from the card hover bar.
-- **Save As & Renaming:** Choose whether to save instantly or prompt for a filename with standard `NSSavePanel`.
-- **Drag & Drop with Deferred Cleanup:** Retains files for 15 minutes after a drop so external apps (like web browsers or chat clients) finish uploading before deletion.
-- **Pinned Cards:** Click the pin icon (`📌`) on any card to keep reference images or palettes in your stack permanently.
-- **Stack Pruning:** Automatically keeps your stack capped at whatever limit you choose (default: 5 items).
-- **Safe Capture:** The floating stack uses `sharingType = .none` so it never shows up inside new screenshots.
+### Method 1: Homebrew Cask (Recommended)
+
+Installing via Homebrew is the easiest method—it automatically handles macOS Gatekeeper permissions so you can open the app without terminal commands or warnings:
+
+```bash
+# Add the tap and install Osoko
+brew install ivanchiew/tap/osoko
+```
 
 ---
 
-## Keyboard Shortcuts
+### Method 2: Direct Download (DMG)
+
+1. Download **`Osoko.dmg`** from the [Latest Releases](https://github.com/ivanchiew/osoko/releases).
+2. Open the DMG and drag **Osoko** into your **Applications** folder:
+
+<p align="center">
+  <!-- Place your DMG drag-to-Applications screenshot here: assets/install-dmg.png -->
+  <img src="assets/install-dmg.png" alt="Drag Osoko to Applications" width="480">
+</p>
+
+3. **First Launch Gatekeeper Notice:**  
+   Because community release builds are built from open source without a commercial Apple Developer ID, macOS Gatekeeper may display a prompt stating the app cannot be verified.
+
+   **To approve it in 5 seconds:**
+   * **Option A (GUI):** Right-click (or Control-click) `Osoko.app` in `/Applications` &rarr; click **Open** &rarr; click **Open Anyway**.
+   * **Option B (Terminal 1-liner):** Run this once to clear the download quarantine flag:
+     ```bash
+     xattr -cr /Applications/Osoko.app
+     ```
+
+---
+
+## 🚀 First-Time Setup & Permissions Walkthrough
+
+When you launch Osoko for the first time, you will see the **Setup Wizard**. Osoko runs 100% locally on your Mac with zero telemetry, but needs standard macOS permissions to capture snippets and listen to hotkeys:
+
+<p align="center">
+  <!-- Place your Onboarding Wizard screenshot here: assets/onboarding-wizard.png -->
+  <img src="assets/onboarding-wizard.png" alt="Osoko Onboarding Wizard" width="480">
+</p>
+
+### Step 1: Screen Recording
+* **Why it's needed:** Allows Osoko to capture interactive selection snippets (`⌘⇧4`) and active windows.
+* **How to enable:**
+  1. Click **Grant Access** in the wizard.
+  2. macOS will open **System Settings &rarr; Privacy & Security &rarr; Screen Recording**.
+  3. Toggle **Osoko** to **ON**.
+  4. macOS will ask to restart the app. Click **Restart Osoko Now** in the wizard.
+
+<p align="center">
+  <!-- Place your Screen Recording setting screenshot here: assets/permission-screen.png -->
+  <img src="assets/permission-screen.png" alt="Screen Recording Permission" width="480">
+</p>
+
+### Step 2: Accessibility
+* **Why it's needed:** Enables single-key hover shortcuts (`1`, `2`, `T`, `R`, `L`, `Space`, `⌫`) and the `⌥⌘S` window snip hotkey.
+* **How to enable:**
+  1. Click **Grant Access** in the wizard.
+  2. In **System Settings &rarr; Privacy & Security &rarr; Accessibility**, toggle **Osoko** to **ON**.
+
+<p align="center">
+  <!-- Place your Accessibility setting screenshot here: assets/permission-accessibility.png -->
+  <img src="assets/permission-accessibility.png" alt="Accessibility Permission" width="480">
+</p>
+
+### Step 3: You're Ready!
+Hit **`⌘⇧4`** to take your first capture. The screenshot immediately slides into your floating corner stack, ready to be copied, redacted, or dragged anywhere!
+
+---
+
+## ⌨️ Shortcuts
 
 ### Global Capture Shortcuts
 Osoko intercepts the macOS screenshot daemon cleanly:
@@ -99,6 +155,25 @@ Hover your mouse over any card in the stack to trigger instant actions without c
 
 ---
 
+## ⚙️ Settings & Customization
+
+Open settings by:
+- Right-clicking any screenshot card &rarr; **Settings...** (`⌘,`)
+- Launching Osoko from Spotlight or Raycast while it's already running
+
+### Actions & Toolbar Tab
+Customize which 4 buttons appear on each card's hover bar:
+* **Top-Right Slot 1 & 2:** Choose between Save, Pin, Copy 1x, OCR, Redact, Share, or **None (Hidden)**.
+* **Bottom-Right Slot 1 & 2:** Modular quick-action slots.
+* **Single / Double Click Gestures:** Choose what clicking the body of a card does (e.g. single-click to copy 1x, double-click to open in Preview).
+
+<p align="center">
+  <!-- Place your Settings Actions tab screenshot here: assets/settings-actions.png -->
+  <img src="assets/settings-actions.png" alt="Osoko Actions and Toolbar Settings" width="480">
+</p>
+
+---
+
 ## 💖 Support & Pricing (Open Source + Paid Pre-built)
 
 **Osoko is 100% open source under the MIT License.**  
@@ -106,12 +181,11 @@ All processing—OCR, QR detection, downscaling, and redaction—runs strictly o
 
 You have two ways to get Osoko:
 
-1. **Free / Build from Source:** If you have Xcode or the Swift toolchain, you can clone and build the app completely free:
+1. **Free / Build from Source / Homebrew:** You can install free via Homebrew or compile with Swift PM:
    ```bash
-   git clone https://github.com/ivanchiew/osoko.git
-   cd osoko && ./scripts/build-app.sh
+   brew install ivanchiew/tap/osoko
    ```
-2. **Pre-built DMG ($4.99):** If you prefer a pre-built, notarized application bundle that runs out-of-the-box without developer tools, you can purchase it for **$4.99** on [Gumroad](https://gumroad.com) to support ongoing development against new macOS releases.
+2. **Pre-built DMG ($4.99):** If you prefer a pre-built, notarized application bundle that runs out-of-the-box and want to support ongoing maintenance against new macOS releases, you can purchase it for **$4.99** on [Gumroad](https://gumroad.com) to support development.
 
 ---
 
