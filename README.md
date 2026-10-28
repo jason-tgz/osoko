@@ -6,7 +6,7 @@
   <img src="assets/wordmark.png" alt="Osoko" width="280">
 </p>
 
-<p align="center"><strong>A temporary floating shelf for macOS screenshots.</strong></p>
+<p align="center"><strong>A headless floating shelf for macOS screenshots.</strong></p>
 
 <p align="center">
   <a href="#download-and-get-started">Download</a> ·
@@ -17,11 +17,9 @@
   <a href="#license">License</a>
 </p>
 
-Most screenshots are temporary: you capture a snippet to drop into Slack, paste into a PR or chat, or grab a line of code, and you never need the file again.
+By default, macOS saves every capture directly to your Desktop, while you could change it to automatically copy them into your clipboard, I still found that it didn't quite suit my needs. So I decided to build my own...
 
-By default, macOS saves every capture directly to your Desktop, leaving behind a trail of clutter you have to clean up manually. Apple's built-in floating thumbnail only holds one capture at a time, vanishes quickly, and often gets in the way of clicks.
-
-Osoko replaces that with an ephemeral floating shelf. Captures route into a lightweight corner stack where you can drag them anywhere, copy Retina-downscaled images, extract text with local OCR, and let them collapse away when you're done.
+Osoko stores your screnshots in a lightweight stack where you can drag them anywhere, copy them, extract text with local OCR, and let them collapse away for a clean look.
 
 <p align="center">
   <a href="assets/demo.mp4">
@@ -31,14 +29,14 @@ Osoko replaces that with an ephemeral floating shelf. Captures route into a ligh
 
 ## How it works
 
-1. **Capture.** Press `⌘⇧4` or `⌘⇧5` as you normally would. Osoko catches your capture into a floating corner stack instead of saving a file to your Desktop.
-2. **Drag or paste.** Drag cards directly into Slack, Figma, Discord, GitHub, or any text editor ([demo](assets/feature-drag.mp4)). Osoko cleans up the temporary file automatically once dropped. You can also hover and press `1` to copy a 1x downscaled image ([demo](assets/feature-copy-image.mp4)) so Retina `@2x` captures don't blow out chat widths.
+1. **Capture.** Press `⌘⇧3` or `⌘⇧4` as you normally would. Osoko catches your capture into a floating stack instead of saving a file to your Desktop.
+2. **Drag or paste.** Drag cards directly into any app ([demo](assets/feature-drag.mp4)). Osoko cleans up the temporary file automatically once dropped. You can also hover and press `1` to copy a 1x downscaled image ([demo](assets/feature-copy-image.mp4)) so Retina `@2x` captures don't blow out chat widths.
 3. **Extract text and links.** Native Apple Vision runs on-device OCR in milliseconds. Hover over a card and press `T` to copy recognized text ([demo](assets/feature-copy-text.mp4)). If an item contains a QR code, a quick-action pill lets you open or copy the URL with `L`.
 4. **Redact sensitive information.** Press `R` to automatically detect and black out API keys, tokens, emails, and credentials with solid bars before sharing.
 5. **Pin or share.** Press `P` on any card to pin it so it stays visible while you reference it ([demo](assets/feature-pin.mp4)), or share directly through the native macOS Share menu ([demo](assets/feature-share.mp4)).
-6. **Fade away.** If you don't interact with the stack, it auto-collapses off-screen after 10 seconds. Move your cursor to the corner or take another capture to bring it back.
+6. **Fade away.** If you don't interact with the stack, it auto-collapses off-screen. Move your cursor to the corner or take another screenshot to bring it back.
 
-**Hover shortcuts.** Osoko runs as a background menu bar agent (`LSUIElement`) with no dock icon. You can trigger every common action simply by hovering over a card and pressing a single key—no clicking required.
+**Hover shortcuts.** Osoko runs as a headless menu bar agent (`LSUIElement`) with no dock icon. You can trigger every common action simply by hovering over a card and pressing a single key—no clicking required.
 
 ## Shortcuts
 
@@ -46,10 +44,9 @@ Osoko replaces that with an ephemeral floating shelf. Captures route into a ligh
 
 | Shortcut | Action |
 | :--- | :--- |
-| `⌘ ⇧ 4` | Interactive selection capture (routes directly into Osoko stack) |
-| `⌘ ⇧ 5` | macOS capture utility (selection, window, or display) |
-| `⌥ ⌘ S` | Window snip (interactive single-window capture) |
-| `⌘ ,` | Settings and preferences |
+| `⌘ ⇧ 3` | Screen capture (full screen) |
+| `⌘ ⇧ 4` | Region selection capture |
+| `⌘ ,` | Settings |
 
 ### Hover Shortcuts
 
