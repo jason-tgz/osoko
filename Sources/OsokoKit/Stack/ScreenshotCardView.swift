@@ -3,6 +3,7 @@ import SwiftUI
 struct ScreenshotCardView: View {
     let item: ScreenshotItem
     @ObservedObject var stack: ScreenshotStack
+    @ObservedObject private var settings = OsokoSettings.shared
 
     @State private var isHovering = false
 
@@ -19,6 +20,14 @@ struct ScreenshotCardView: View {
 
     private var shape: RoundedRectangle {
         RoundedRectangle(cornerRadius: 12, style: .continuous)
+    }
+
+    private var topActions: [CardActionKind] {
+        [settings.topActionSlot1, settings.topActionSlot2].filter { $0 != .none }
+    }
+
+    private var bottomActions: [CardActionKind] {
+        [settings.bottomActionSlot1, settings.bottomActionSlot2].filter { $0 != .none }
     }
 
     var body: some View {
@@ -49,30 +58,20 @@ struct ScreenshotCardView: View {
                             .frame(width: 22, height: 22)
                             .background(.ultraThinMaterial, in: Circle())
                             .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+                            .help("Remove from stack")
 
                         Spacer()
 
-                        // Save to Location Button (Top-Right)
-                        Image(systemName: "arrow.down.to.line")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(.primary)
-                            .frame(width: 22, height: 22)
-                            .background(.ultraThinMaterial, in: Circle())
-                            .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
-
-                        // Pin Button
-                        Image(systemName: item.isPinned ? "pin.fill" : "pin")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(item.isPinned ? .orange : .primary)
-                            .frame(width: 22, height: 22)
-                            .background(.ultraThinMaterial, in: Circle())
-                            .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+                        // Configurable Top-Right Action Slots (slot 1 then slot 2)
+                        ForEach(Array(topActions.enumerated()), id: \.offset) { _, action in
+                            actionButton(action)
+                        }
                     }
                     .padding(5)
 
                     Spacer()
 
-                    // Bottom Row: Dimensions Badge & Action Buttons (OCR & Share)
+                    // Bottom Row: Dimensions Badge & Configurable Action Slots
                     HStack(spacing: 6) {
                         HStack(spacing: 4) {
                             Image(systemName: "viewfinder")
@@ -89,21 +88,10 @@ struct ScreenshotCardView: View {
 
                         Spacer()
 
-                        // OCR Text Recognition Button
-                        Image(systemName: "text.viewfinder")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(.primary)
-                            .frame(width: 22, height: 22)
-                            .background(.ultraThinMaterial, in: Circle())
-                            .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
-
-                        // Native Share Button
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(.primary)
-                            .frame(width: 22, height: 22)
-                            .background(.ultraThinMaterial, in: Circle())
-                            .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+                        // Configurable Bottom-Right Action Slots (slot 1 then slot 2)
+                        ForEach(Array(bottomActions.enumerated()), id: \.offset) { _, action in
+                            actionButton(action)
+                        }
                     }
                     .padding(5)
                 }
@@ -141,7 +129,9 @@ struct ScreenshotCardView: View {
             // 5. Native AppKit Drag & Drop and Click Handling Area
             ScreenshotGrabArea(
                 item: item,
-                stack: stack
+                stack: stack,
+                topActions: topActions,
+                bottomActions: bottomActions
             )
             .frame(width: cardSize.width, height: cardSize.height)
         }
@@ -157,5 +147,18 @@ struct ScreenshotCardView: View {
         .animation(.spring(response: 0.28, dampingFraction: 0.75), value: isHovering)
         .animation(.easeOut(duration: 0.2), value: stack.toastMessage?.text)
         .onHover { isHovering = $0 }
+    }
+
+    @ViewBuilder
+    private func actionButton(_ action: CardActionKind) -> some View {
+        let pinned = action == .pin && item.isPinned
+
+        Image(systemName: pinned ? "pin.fill" : action.iconName)
+            .font(.system(size: 9, weight: .bold))
+            .foregroundStyle(pinned ? Color.orange : Color.primary)
+            .frame(width: 22, height: 22)
+            .background(.ultraThinMaterial, in: Circle())
+            .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 0.5))
+            .help(action.tooltip)
     }
 }

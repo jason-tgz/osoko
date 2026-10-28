@@ -156,6 +156,45 @@ public final class ScreenshotStack: ObservableObject {
         }
     }
 
+    /// Copies a 1x (logical resolution) version of the screenshot to the clipboard.
+    public func copyDownscaled(id: UUID, showToastFeedback: Bool = true) {
+        guard let item = items.first(where: { $0.id == id }) else { return }
+
+        if ImageScaler.copyDownscaledToPasteboard(imageAt: item.url) {
+            if showToastFeedback {
+                showToast(id: id, text: "Copied 1x ✓")
+            }
+        } else if showToastFeedback {
+            showToast(id: id, text: "Copy 1x Failed")
+        }
+    }
+
+    /// Dispatches a card action bound to a toolbar slot or click gesture.
+    public func executeAction(_ action: CardActionKind, id: UUID, grabView: Any? = nil) {
+        switch action {
+        case .copyDownscaled:
+            copyDownscaled(id: id)
+        case .copyOriginal:
+            copy(id: id)
+        case .copyOCR:
+            copyText(id: id)
+        case .saveToFolder:
+            saveToLocation(id: id)
+        case .saveAs:
+            saveAs(id: id)
+        case .pin:
+            togglePin(id: id)
+        case .openInPreview:
+            openInDefaultApp(id: id)
+        case .share:
+            if let grabView = grabView as? ScreenshotGrabView {
+                grabView.showShareMenu()
+            }
+        case .none:
+            break
+        }
+    }
+
     public func copyText(id: UUID) {
         guard let item = items.first(where: { $0.id == id }) else { return }
 
