@@ -32,7 +32,7 @@ public final class ScreenshotStackPanel: NSPanel {
         observeStack()
     }
 
-    override public var canBecomeKey: Bool { false }
+    override public var canBecomeKey: Bool { true }
     override public var canBecomeMain: Bool { false }
 
     private func observeStack() {

@@ -16,7 +16,7 @@ final class PrivacyRedactionTests: XCTestCase {
         NSRect(origin: .zero, size: size).fill()
 
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.monospacedSystemFont(ofSize: 36, weight: .semibold),
+            .font: NSFont.boldSystemFont(ofSize: 40),
             .foregroundColor: NSColor.black,
         ]
 

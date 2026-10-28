@@ -118,6 +118,7 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
     private var startedDrag = false
     private var hoverTrackingArea: NSTrackingArea?
     private var isMouseInside = false
+    private var keyMonitor: Any?
 
     override var acceptsFirstResponder: Bool { true }
 
@@ -146,16 +147,42 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
         super.mouseEntered(with: event)
         isMouseInside = true
         if OsokoSettings.shared.enableHoverShortcuts {
+            window?.makeKey()
             window?.makeFirstResponder(self)
+            startKeyMonitor()
         }
     }
 
     override func mouseExited(with event: NSEvent) {
         super.mouseExited(with: event)
         isMouseInside = false
+        stopKeyMonitor()
         if window?.firstResponder === self {
             window?.makeFirstResponder(nil)
         }
+    }
+
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        super.viewWillMove(toWindow: newWindow)
+        if newWindow == nil {
+            stopKeyMonitor()
+        }
+    }
+
+    private func startKeyMonitor() {
+        guard keyMonitor == nil else { return }
+
+        keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            Task { @MainActor [weak self] in
+                self?.handleShortcut(event: event)
+            }
+        }
+    }
+
+    private func stopKeyMonitor() {
+        guard let keyMonitor else { return }
+        NSEvent.removeMonitor(keyMonitor)
+        self.keyMonitor = nil
     }
 
     // MARK: - Hit Testing
@@ -300,6 +327,21 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
             return
         }
 
+        handleShortcut(event: event)
+    }
+
+    private func handleShortcut(event: NSEvent) {
+        guard OsokoSettings.shared.enableHoverShortcuts else { return }
+        guard !event.modifierFlags.contains(.command) else { return }
+
+        // The global monitor fires while another application is focused, so make
+        // sure the pointer is actually over this specific card before acting.
+        let mouseLocation = NSEvent.mouseLocation
+        guard let window = self.window else { return }
+        let windowPoint = window.convertPoint(fromScreen: mouseLocation)
+        let viewPoint = self.convert(windowPoint, from: nil)
+        guard self.bounds.contains(viewPoint) else { return }
+
         let key = (event.charactersIgnoringModifiers ?? "").lowercased()
         switch key {
         case "1":
@@ -311,14 +353,12 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
         case "r":
             onAction(.redactSensitive)
         case "l":
-            if let barcode = detectedBarcode, !barcode.isEmpty {
-                if isWebLink(barcode) {
-                    onAction(.openQRLink)
-                } else {
-                    onAction(.copyQRLink)
-                }
-            } else {
+            if let barcode = detectedBarcode,
+               !barcode.isEmpty,
+               isWebLink(barcode) {
                 onAction(.openQRLink)
+            } else {
+                onAction(.copyQRLink)
             }
         case "s":
             if event.modifierFlags.contains(.shift) || event.modifierFlags.contains(.option) {
@@ -333,7 +373,7 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
         case "\u{7f}", "\u{08}":
             onRemove()
         default:
-            super.keyDown(with: event)
+            break
         }
     }
 

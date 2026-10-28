@@ -1,6 +1,6 @@
 cask "osoko" do
   version "1.0.0"
-  sha256 "d75d11598c40f5028d81fd562f59ef5614fc03a559a9b709cae2bd4c0a72a6fb"
+  sha256 "aa6dbc465dc5b292cce7f017daf1ce39821e586d94d77eaa0775a87168d06daa"
 
   url "https://github.com/ivanchiew/osoko/releases/download/v#{version}/Osoko.dmg"
   name "Osoko"
