@@ -21,7 +21,7 @@
 
 ---
 
-## 🎬 Demo
+## Demo
 
 <p align="center">
   <a href="assets/demo.mp4">
@@ -43,44 +43,44 @@ By default, macOS saves every capture directly to your Desktop, creating constan
 
 ---
 
-## ✨ Features in Action
+## Features in Action
 
-### 📋 Copy & Paste Image
+### Copy & Paste Image
 <p align="center">
   <a href="assets/feature-copy-image.mp4">
     <img src="assets/feature-copy-image.gif" alt="Copy and Paste Image" width="100%">
   </a>
 </p>
 
-### 🖱️ Drag & Drop
+### Drag & Drop
 <p align="center">
   <a href="assets/feature-drag.mp4">
     <img src="assets/feature-drag.gif" alt="Drag & Drop" width="100%">
   </a>
 </p>
 
-### 🔍 Copy Text (OCR)
+### Copy Text (OCR)
 <p align="center">
   <a href="assets/feature-copy-text.mp4">
     <img src="assets/feature-copy-text.gif" alt="Copy Text OCR" width="100%">
   </a>
 </p>
 
-### 📌 Pin to Screen
+### Pin to Screen
 <p align="center">
   <a href="assets/feature-pin.mp4">
     <img src="assets/feature-pin.gif" alt="Pin Card" width="100%">
   </a>
 </p>
 
-### ↗️ Native Share
+### Native Share
 <p align="center">
   <a href="assets/feature-share.mp4">
     <img src="assets/feature-share.gif" alt="Native macOS Share" width="100%">
   </a>
 </p>
 
-### 🛡️ More Superpowers
+### More Superpowers
 * **Privacy Shield (Auto-Redact):** Tap `R` to automatically black out detected API keys, credentials, and emails with solid black bars.
 * **Smart QR & Barcode Detection:** Tap `L` to open or copy QR links recognized on screen.
 * **Auto-Collapse Shelf:** Automatically tucks off-screen when idle after 10 seconds so it never blocks clicks.
@@ -88,7 +88,7 @@ By default, macOS saves every capture directly to your Desktop, creating constan
 
 ---
 
-## 📥 Installation
+## Installation
 
 ### Method 1: Homebrew Cask (Recommended)
 
@@ -123,7 +123,7 @@ brew install ivanchiew/tap/osoko
 
 ---
 
-## 🚀 First-Time Setup & Permissions Walkthrough
+## First-Time Setup & Permissions Walkthrough
 
 When you launch Osoko for the first time, you will see the **Setup Wizard**. Osoko runs 100% locally on your Mac with zero telemetry, but needs standard macOS permissions to capture snippets and listen to hotkeys:
 
@@ -161,7 +161,7 @@ Hit **`⌘⇧4`** to take your first capture. The screenshot immediately slides 
 
 ---
 
-## ⌨️ Shortcuts
+## Shortcuts
 
 ### Global Capture Shortcuts
 Osoko intercepts the macOS screenshot daemon cleanly:
@@ -184,13 +184,13 @@ Hover your mouse over any card in the stack to trigger instant actions without c
 | **`R`** | Redact Sensitive Data (API keys, emails) | *Redacted (n) ✓* |
 | **`L`** | Open / Copy QR Code Link | *Opening Link...* |
 | **`S`** | Save to configured folder (`⇧S` for Save As) | *Saved ✓* |
-| **`P`** | Toggle Pin (keep on stack) | *Pinned 📌* |
+| **`P`** | Toggle Pin (keep on stack) | *Pinned* |
 | **`Space`** | Open in Preview | — |
 | **`⌫`** | Delete / dismiss card from stack | — |
 
 ---
 
-## ⚙️ Settings & Customization
+## Settings & Customization
 
 Open settings by:
 - Right-clicking any screenshot card &rarr; **Settings...** (`⌘,`)
@@ -209,7 +209,7 @@ Customize which 4 buttons appear on each card's hover bar:
 
 ---
 
-## 💖 Support & Pricing (Open Source + Paid Pre-built)
+## Support & Pricing (Open Source + Paid Pre-built)
 
 **Osoko is 100% open source under the MIT License.**  
 All processing—OCR, QR detection, downscaling, and redaction—runs strictly on-device with zero telemetry and zero network calls.
@@ -224,7 +224,7 @@ You have two ways to get Osoko:
 
 ---
 
-## 🛠️ Build from Source
+## Build from Source
 
 ### Requirements
 - macOS 14.0 (Sonoma) or newer
