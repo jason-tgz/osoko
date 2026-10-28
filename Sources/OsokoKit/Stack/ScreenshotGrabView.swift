@@ -62,6 +62,7 @@ struct ScreenshotGrabArea: NSViewRepresentable {
             menu.addItem(NSMenuItem(title: "Copy Image", action: #selector(ScreenshotGrabView.menuCopy), keyEquivalent: "c"))
             menu.addItem(NSMenuItem(title: "Copy 1x Downscaled", action: #selector(ScreenshotGrabView.menuCopyDownscaled), keyEquivalent: "1"))
             menu.addItem(NSMenuItem(title: "Copy Text (OCR)", action: #selector(ScreenshotGrabView.menuOCR), keyEquivalent: "t"))
+            menu.addItem(NSMenuItem(title: "Redact Sensitive Data", action: #selector(ScreenshotGrabView.menuRedact), keyEquivalent: "r"))
             if let barcode = item.detectedBarcode, !barcode.isEmpty {
                 if isWebLink(barcode) {
                     menu.addItem(NSMenuItem(title: "Open QR Code Link", action: #selector(ScreenshotGrabView.menuOpenQRLink), keyEquivalent: "l"))
@@ -307,6 +308,8 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
             onAction(.copyOriginal)
         case "t":
             onAction(.copyOCR)
+        case "r":
+            onAction(.redactSensitive)
         case "l":
             if let barcode = detectedBarcode, !barcode.isEmpty {
                 if isWebLink(barcode) {
@@ -339,6 +342,7 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
     @objc func menuCopy() { onAction(.copyOriginal) }
     @objc func menuCopyDownscaled() { onAction(.copyDownscaled) }
     @objc func menuOCR() { onAction(.copyOCR) }
+    @objc func menuRedact() { onAction(.redactSensitive) }
     @objc func menuCopyQRLink() { onAction(.copyQRLink) }
     @objc func menuOpenQRLink() { onAction(.openQRLink) }
     @objc func menuSave() { onAction(.saveToFolder) }

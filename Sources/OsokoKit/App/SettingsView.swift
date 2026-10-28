@@ -214,11 +214,11 @@ public struct SettingsView: View {
 
             Section {
                 Toggle(
-                    "Enable single-key shortcuts when hovering stack (1, 2, T, S, P, L, Space, ⌫)",
+                    "Enable single-key shortcuts when hovering stack (1, 2, T, S, P, L, R, Space, ⌫)",
                     isOn: $settings.enableHoverShortcuts
                 )
 
-                Text("1 copies 1x, 2/C copies the original, T extracts text, S saves (⇧/⌥ for Save As), P pins, L opens a detected QR link, Space opens, and ⌫ deletes.")
+                Text("1 copies 1x, 2/C copies the original, T extracts text, S saves (⇧/⌥ for Save As), P pins, L opens a detected QR link, R redacts sensitive data, Space opens, and ⌫ deletes.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } header: {

@@ -194,6 +194,8 @@ public final class ScreenshotStack: ObservableObject {
             copy(id: id)
         case .copyOCR:
             copyText(id: id)
+        case .redactSensitive:
+            copyRedacted(id: id)
         case .copyQRLink:
             copyQRLink(id: id)
         case .openQRLink:
@@ -233,6 +235,24 @@ public final class ScreenshotStack: ObservableObject {
                 }
             } catch {
                 self.showToast(id: id, text: "OCR Failed")
+            }
+        }
+    }
+
+    /// Copies a version of the screenshot with detected sensitive data blacked out.
+    public func copyRedacted(id: UUID) {
+        guard let item = items.first(where: { $0.id == id }) else { return }
+
+        Task { @MainActor in
+            do {
+                let count = try await PrivacyRedactionService.copyRedactedToPasteboard(imageAt: item.url)
+                if count > 0 {
+                    self.showToast(id: id, text: "Redacted (\(count)) ✓")
+                } else {
+                    self.showToast(id: id, text: "No Sensitive Data")
+                }
+            } catch {
+                self.showToast(id: id, text: "Redaction Failed")
             }
         }
     }
