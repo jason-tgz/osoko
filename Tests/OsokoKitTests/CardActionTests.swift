@@ -5,11 +5,13 @@ import Foundation
 
 final class CardActionTests: XCTestCase {
     func testCardActionKindMetadata() {
-        XCTAssertEqual(CardActionKind.allCases.count, 9)
+        XCTAssertEqual(CardActionKind.allCases.count, 11)
 
         XCTAssertEqual(CardActionKind.copyDownscaled.rawValue, "copy_downscaled")
         XCTAssertEqual(CardActionKind.copyOriginal.rawValue, "copy_original")
         XCTAssertEqual(CardActionKind.copyOCR.rawValue, "copy_ocr")
+        XCTAssertEqual(CardActionKind.copyQRLink.rawValue, "copy_qr_link")
+        XCTAssertEqual(CardActionKind.openQRLink.rawValue, "open_qr_link")
         XCTAssertEqual(CardActionKind.saveToFolder.rawValue, "save_to_folder")
         XCTAssertEqual(CardActionKind.saveAs.rawValue, "save_as")
         XCTAssertEqual(CardActionKind.pin.rawValue, "pin")
@@ -20,6 +22,8 @@ final class CardActionTests: XCTestCase {
         XCTAssertEqual(CardActionKind.copyDownscaled.displayName, "Copy 1x Downscaled")
         XCTAssertEqual(CardActionKind.copyOriginal.displayName, "Copy 2x Original")
         XCTAssertEqual(CardActionKind.copyOCR.displayName, "Copy Text (OCR)")
+        XCTAssertEqual(CardActionKind.copyQRLink.displayName, "Copy QR Code Link")
+        XCTAssertEqual(CardActionKind.openQRLink.displayName, "Open QR Link")
         XCTAssertEqual(CardActionKind.saveToFolder.displayName, "Save to Location")
         XCTAssertEqual(CardActionKind.saveAs.displayName, "Save As...")
         XCTAssertEqual(CardActionKind.pin.displayName, "Pin to Stack")
@@ -30,6 +34,8 @@ final class CardActionTests: XCTestCase {
         XCTAssertEqual(CardActionKind.copyDownscaled.iconName, "1.circle")
         XCTAssertEqual(CardActionKind.copyOriginal.iconName, "doc.on.doc")
         XCTAssertEqual(CardActionKind.copyOCR.iconName, "text.viewfinder")
+        XCTAssertEqual(CardActionKind.copyQRLink.iconName, "qrcode")
+        XCTAssertEqual(CardActionKind.openQRLink.iconName, "arrow.up.right.square")
         XCTAssertEqual(CardActionKind.saveToFolder.iconName, "arrow.down.to.line")
         XCTAssertEqual(CardActionKind.saveAs.iconName, "square.and.pencil")
         XCTAssertEqual(CardActionKind.pin.iconName, "pin")

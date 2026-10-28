@@ -47,7 +47,19 @@ struct ScreenshotCardView: View {
                 .stroke(Color.black.opacity(0.18), lineWidth: 0.5)
                 .padding(-0.5)
 
-            // 3. Hover Overlay Controls
+            // 3. Detected QR / Barcode Indicator
+            if let barcode = item.detectedBarcode, !barcode.isEmpty {
+                VStack {
+                    qrBadge(for: barcode)
+                        .padding(.top, isHovering ? 36 : 6)
+                    Spacer()
+                }
+                .frame(width: cardSize.width, height: cardSize.height, alignment: .top)
+                .allowsHitTesting(false)
+                .transition(.opacity.combined(with: .scale(scale: 0.9)))
+            }
+
+            // 4. Hover Overlay Controls
             if isHovering {
                 VStack {
                     HStack(spacing: 6) {
@@ -113,7 +125,7 @@ struct ScreenshotCardView: View {
                 .allowsHitTesting(false)
             }
 
-            // 4. Toast Badge Feedback ("Copied ✓" / "Saved ✓" / "Pinned 📌")
+            // 5. Toast Badge Feedback ("Copied ✓" / "Saved ✓" / "Pinned 📌")
             if let toast = stack.toastMessage, toast.id == item.id {
                 Text(toast.text)
                     .font(.system(size: 11, weight: .semibold))
@@ -126,7 +138,7 @@ struct ScreenshotCardView: View {
                     .allowsHitTesting(false)
             }
 
-            // 5. Native AppKit Drag & Drop and Click Handling Area
+            // 6. Native AppKit Drag & Drop and Click Handling Area
             ScreenshotGrabArea(
                 item: item,
                 stack: stack,
@@ -146,7 +158,35 @@ struct ScreenshotCardView: View {
         .scaleEffect(isHovering ? 1.025 : 1.0)
         .animation(.spring(response: 0.28, dampingFraction: 0.75), value: isHovering)
         .animation(.easeOut(duration: 0.2), value: stack.toastMessage?.text)
+        .animation(.easeOut(duration: 0.2), value: item.detectedBarcode)
         .onHover { isHovering = $0 }
+    }
+
+    private func qrBadge(for payload: String) -> some View {
+        HStack(spacing: 3) {
+            Image(systemName: "qrcode")
+                .font(.system(size: 8, weight: .bold))
+                .foregroundStyle(Color.green)
+
+            Text("QR: \(barcodeDisplayText(payload))")
+                .font(.system(size: 8, weight: .semibold, design: .rounded))
+                .foregroundStyle(Color.primary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2.5)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay(Capsule().stroke(Color.green.opacity(0.35), lineWidth: 0.5))
+        .frame(maxWidth: 132)
+        .shadow(color: Color.black.opacity(0.18), radius: 3, x: 0, y: 1)
+    }
+
+    private func barcodeDisplayText(_ payload: String) -> String {
+        if let url = URL(string: payload), let host = url.host, !host.isEmpty {
+            return host
+        }
+        return payload
     }
 
     @ViewBuilder

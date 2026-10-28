@@ -8,6 +8,7 @@ public struct ScreenshotItem: Identifiable, Sendable {
     public let pixelWidth: Int
     public let pixelHeight: Int
     public var isPinned: Bool
+    public var detectedBarcode: String? = nil
     public let createdAt: Date
 
     public init(
@@ -17,6 +18,7 @@ public struct ScreenshotItem: Identifiable, Sendable {
         pixelWidth: Int,
         pixelHeight: Int,
         isPinned: Bool = false,
+        detectedBarcode: String? = nil,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -25,6 +27,7 @@ public struct ScreenshotItem: Identifiable, Sendable {
         self.pixelWidth = pixelWidth
         self.pixelHeight = pixelHeight
         self.isPinned = isPinned
+        self.detectedBarcode = detectedBarcode
         self.createdAt = createdAt
     }
 

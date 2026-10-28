@@ -6,6 +6,12 @@ public enum ScreenshotButtonKind: Sendable, Equatable {
     case action(CardActionKind)
 }
 
+private func isWebLink(_ payload: String) -> Bool {
+    guard let url = URL(string: payload) else { return false }
+    let scheme = url.scheme?.lowercased()
+    return scheme == "http" || scheme == "https"
+}
+
 struct ScreenshotGrabArea: NSViewRepresentable {
     let item: ScreenshotItem
     let stack: ScreenshotStack
@@ -28,6 +34,7 @@ struct ScreenshotGrabArea: NSViewRepresentable {
         view.url = item.url
         view.dragImage = item.thumbnail
         view.isPinned = item.isPinned
+        view.detectedBarcode = item.detectedBarcode
         view.topActions = topActions
         view.bottomActions = bottomActions
         view.onClick = {
@@ -55,6 +62,12 @@ struct ScreenshotGrabArea: NSViewRepresentable {
             menu.addItem(NSMenuItem(title: "Copy Image", action: #selector(ScreenshotGrabView.menuCopy), keyEquivalent: "c"))
             menu.addItem(NSMenuItem(title: "Copy 1x Downscaled", action: #selector(ScreenshotGrabView.menuCopyDownscaled), keyEquivalent: "1"))
             menu.addItem(NSMenuItem(title: "Copy Text (OCR)", action: #selector(ScreenshotGrabView.menuOCR), keyEquivalent: "t"))
+            if let barcode = item.detectedBarcode, !barcode.isEmpty {
+                if isWebLink(barcode) {
+                    menu.addItem(NSMenuItem(title: "Open QR Code Link", action: #selector(ScreenshotGrabView.menuOpenQRLink), keyEquivalent: "l"))
+                }
+                menu.addItem(NSMenuItem(title: "Copy QR Code Link", action: #selector(ScreenshotGrabView.menuCopyQRLink), keyEquivalent: ""))
+            }
             menu.addItem(.separator())
             menu.addItem(NSMenuItem(title: "Save to Location", action: #selector(ScreenshotGrabView.menuSave), keyEquivalent: "s"))
             let saveAsItem = NSMenuItem(title: "Save As... (Rename)", action: #selector(ScreenshotGrabView.menuSaveAs), keyEquivalent: "S")
@@ -85,6 +98,7 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
     var url: URL?
     var dragImage: NSImage?
     var isPinned: Bool = false
+    var detectedBarcode: String?
     var topActions: [CardActionKind] = []
     var bottomActions: [CardActionKind] = []
 
@@ -293,6 +307,16 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
             onAction(.copyOriginal)
         case "t":
             onAction(.copyOCR)
+        case "l":
+            if let barcode = detectedBarcode, !barcode.isEmpty {
+                if isWebLink(barcode) {
+                    onAction(.openQRLink)
+                } else {
+                    onAction(.copyQRLink)
+                }
+            } else {
+                onAction(.openQRLink)
+            }
         case "s":
             if event.modifierFlags.contains(.shift) || event.modifierFlags.contains(.option) {
                 onAction(.saveAs)
@@ -315,6 +339,8 @@ final class ScreenshotGrabView: NSView, NSDraggingSource {
     @objc func menuCopy() { onAction(.copyOriginal) }
     @objc func menuCopyDownscaled() { onAction(.copyDownscaled) }
     @objc func menuOCR() { onAction(.copyOCR) }
+    @objc func menuCopyQRLink() { onAction(.copyQRLink) }
+    @objc func menuOpenQRLink() { onAction(.openQRLink) }
     @objc func menuSave() { onAction(.saveToFolder) }
     @objc func menuSaveAs() { onAction(.saveAs) }
     @objc func menuShare() { onAction(.share) }
