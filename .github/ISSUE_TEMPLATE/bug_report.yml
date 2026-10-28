@@ -1,0 +1,89 @@
+name: Bug Report
+description: Report an issue or unexpected behavior in Osoko
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue! Please check if a similar issue has already been reported before submitting.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+      placeholder: When I capture a screenshot with ⌘⇧4, ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this behavior?
+      placeholder: |
+        1. Take a screenshot using ⌘⇧4
+        2. Hover over the floating card and press 'T'
+        3. See error / unexpected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen instead?
+      placeholder: The extracted text should be copied to the clipboard.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Installation method
+      options:
+        - Homebrew Cask (brew install ivanchiew/tap/osoko)
+        - Direct DMG download from GitHub Releases
+        - Built from source (swift build)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: macos-version
+    attributes:
+      label: macOS version
+      options:
+        - macOS 15 (Sequoia)
+        - macOS 14 (Sonoma)
+        - Earlier / Beta
+    validations:
+      required: true
+
+  - type: dropdown
+    id: chip-architecture
+    attributes:
+      label: Mac architecture
+      options:
+        - Apple Silicon (M1 / M2 / M3 / M4)
+        - Intel (x86_64)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs-media
+    attributes:
+      label: Screenshots or Console Logs
+      description: Drag and drop screenshots, screen recordings, or paste relevant Console / crash logs here.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have verified that Screen Recording & Accessibility permissions are granted in System Settings.
+          required: false
+        - label: I have searched existing issues to ensure this is not a duplicate.
+          required: true

@@ -1,0 +1,28 @@
+name: Question or Setup Help
+description: Ask a question about using or configuring Osoko
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question about shortcuts, permissions, or configuration? Feel free to ask below!
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What is your question?
+      placeholder: How do I configure ...?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: macos-version
+    attributes:
+      label: macOS version
+      options:
+        - macOS 15 (Sequoia)
+        - macOS 14 (Sonoma)
+        - Other
+    validations:
+      required: false

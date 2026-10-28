@@ -1,0 +1,43 @@
+name: Feature Request
+description: Suggest an idea, workflow improvement, or new feature for Osoko
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We love suggestions that keep Osoko lightweight, fast, and unobtrusive!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear and concise description of the limitation or friction you are facing.
+      placeholder: I frequently need to ... but currently Osoko ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear explanation of what you want to happen and how it should work.
+      placeholder: Add an option or shortcut that allows ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: Any alternative solutions or workarounds you've used.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context or mockups
+      description: Add any mockups, screenshots, or links to similar implementations.
+    validations:
+      required: false
