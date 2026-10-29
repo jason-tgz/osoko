@@ -1,13 +1,14 @@
 cask "osoko" do
   version "1.0.0"
-  sha256 "8a4a10adf595a0f8fffb212ceb6fc49415de330a0b8327ec9b66522bc48e14cb"
+  sha256 "5a1e495591c3c3d730154b2e6189e0f1ea73eb06b774906735f47b374dedce29"
 
-  url "https://github.com/ivanchiew/osoko/releases/download/v#{version}/Osoko.dmg"
+  url "https://github.com/lostmusician/osoko/releases/download/v#{version}/Osoko.dmg"
   name "Osoko"
   desc "Temporary floating shelf for macOS screenshots with 1x downscale, OCR, and privacy redaction"
-  homepage "https://github.com/ivanchiew/osoko"
+  homepage "https://github.com/lostmusician/osoko"
 
-  depends_on macos: ">= :sonoma"
+  depends_on arch: :arm64
+  depends_on macos: :sonoma
 
   app "Osoko.app"
 

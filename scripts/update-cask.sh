@@ -2,14 +2,20 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DMG="$ROOT/dist/Osoko.dmg"
-CASK_FILE="$ROOT/Casks/osoko.rb"
 VERSION="${1:-1.0.0}"
+CASK_FILE="${2:-$ROOT/Casks/osoko.rb}"
 
-if [ ! -f "$DMG" ]; then
-    echo "Error: $DMG does not exist. Run ./scripts/package.sh first." >&2
+if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "Usage: $0 <version, e.g. 1.0.0> [path/to/Casks/osoko.rb]" >&2
     exit 1
 fi
+
+# Hash the published artifact: rebuilding a DMG locally changes its checksum.
+DMG="$(mktemp /tmp/osoko-cask.XXXXXX)"
+trap 'rm -f "$DMG"' EXIT
+curl --fail --location --retry 2 \
+    "https://github.com/lostmusician/osoko/releases/download/v$VERSION/Osoko.dmg" \
+    --output "$DMG"
 
 SHA256="$(shasum -a 256 "$DMG" | cut -d ' ' -f 1)"
 
@@ -23,12 +29,13 @@ cask "osoko" do
   version "$VERSION"
   sha256 "$SHA256"
 
-  url "https://github.com/ivanchiew/osoko/releases/download/v#{version}/Osoko.dmg"
+  url "https://github.com/lostmusician/osoko/releases/download/v#{version}/Osoko.dmg"
   name "Osoko"
   desc "Temporary floating shelf for macOS screenshots with 1x downscale, OCR, and privacy redaction"
-  homepage "https://github.com/ivanchiew/osoko"
+  homepage "https://github.com/lostmusician/osoko"
 
-  depends_on macos: ">= :sonoma"
+  depends_on arch: :arm64
+  depends_on macos: :sonoma
 
   app "Osoko.app"
 

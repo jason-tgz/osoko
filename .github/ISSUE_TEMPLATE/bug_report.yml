@@ -43,7 +43,7 @@ body:
     attributes:
       label: Installation method
       options:
-        - Homebrew Cask (brew install ivanchiew/tap/osoko)
+        - Homebrew Cask (brew install --cask lostmusician/tap/osoko)
         - Direct DMG download from GitHub Releases
         - Built from source (swift build)
     validations:

@@ -84,8 +84,10 @@ Hover your cursor over any card in the stack to trigger instant actions:
 Homebrew handles installation and Gatekeeper permissions automatically:
 
 ```bash
-brew install ivanchiew/tap/osoko
+brew install --cask lostmusician/tap/osoko
 ```
+
+Requires Apple Silicon and macOS Sonoma (14) or later. The cask is maintained in [lostmusician/homebrew-tap](https://github.com/lostmusician/homebrew-tap).
 
 ### Option 2: Direct Download (DMG)
 
@@ -124,6 +126,18 @@ swift test
 ```
 
 Questions, bug reports, and suggestions: [GitHub Issues](https://github.com/lostmusician/osoko/issues).
+
+### Updating the Homebrew cask
+
+After publishing `Osoko.dmg` in a GitHub release, update the cask from the published download so its checksum matches what users receive:
+
+```bash
+./scripts/update-cask.sh 1.0.0
+# Also update a local checkout of lostmusician/homebrew-tap:
+./scripts/update-cask.sh 1.0.0 /path/to/homebrew-tap/Casks/osoko.rb
+```
+
+Commit the updated cask here and push the matching cask to `lostmusician/homebrew-tap`. Users receive updates through `brew update` and `brew upgrade --cask osoko`.
 
 ## License
 
