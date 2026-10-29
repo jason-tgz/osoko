@@ -248,7 +248,7 @@ public struct SettingsView: View {
                 Text("osoko")
                     .font(.system(size: 28, weight: .semibold))
                     .tracking(-1)
-                Text("Version 1.0.0")
+                Text("Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Development")")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Text("Standalone lightweight macOS screenshot shelf and assistant.")

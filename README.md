@@ -132,9 +132,9 @@ Questions, bug reports, and suggestions: [GitHub Issues](https://github.com/lost
 After publishing `Osoko.dmg` in a GitHub release, update the cask from the published download so its checksum matches what users receive:
 
 ```bash
-./scripts/update-cask.sh 1.0.0
+./scripts/update-cask.sh 1.0.1
 # Also update a local checkout of lostmusician/homebrew-tap:
-./scripts/update-cask.sh 1.0.0 /path/to/homebrew-tap/Casks/osoko.rb
+./scripts/update-cask.sh 1.0.1 /path/to/homebrew-tap/Casks/osoko.rb
 ```
 
 Commit the updated cask here and push the matching cask to `lostmusician/homebrew-tap`. Users receive updates through `brew update` and `brew upgrade --cask osoko`.

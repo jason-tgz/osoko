@@ -1,6 +1,6 @@
 cask "osoko" do
-  version "1.0.0"
-  sha256 "5a1e495591c3c3d730154b2e6189e0f1ea73eb06b774906735f47b374dedce29"
+  version "1.0.1"
+  sha256 "1509189bb62c4c5722d6185ac1c50f6d3ad08514965b6f51124e60c260eac176"
 
   url "https://github.com/lostmusician/osoko/releases/download/v#{version}/Osoko.dmg"
   name "Osoko"
