@@ -1,9 +1,15 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Osoko" width="120" height="120">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-light.svg">
+    <img src="assets/logo.svg" alt="Osoko" width="100" height="100">
+  </picture>
 </p>
 
 <p align="center">
-  <img src="assets/wordmark.png" alt="Osoko" width="280">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/wordmark-light.svg">
+    <img src="assets/wordmark.svg" alt="Osoko" width="240">
+  </picture>
 </p>
 
 <p align="center"><strong>A headless floating shelf for macOS screenshots.</strong></p>

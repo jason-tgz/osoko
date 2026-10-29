@@ -67,7 +67,7 @@ public final class OsokoAppDelegate: NSObject, NSApplicationDelegate, NSMenuDele
             if statusItem == nil {
                 let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
                 if let button = item.button {
-                    button.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "Osoko")
+                    button.image = OsokoBrand.menuBarImage
                     button.imagePosition = .imageOnly
                 }
                 let menu = buildStatusMenu()

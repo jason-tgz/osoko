@@ -241,13 +241,13 @@ public struct SettingsView: View {
         VStack(spacing: 16) {
             Spacer()
 
-            Image(systemName: "camera.viewfinder")
-                .font(.system(size: 48))
-                .foregroundStyle(.tint)
+            OsokoAppIcon()
+                .frame(width: 72, height: 72)
 
             VStack(spacing: 4) {
-                Text("Osoko")
-                    .font(.title2.bold())
+                Text("osoko")
+                    .font(.system(size: 28, weight: .semibold))
+                    .tracking(-1)
                 Text("Version 1.0.0")
                     .font(.caption)
                     .foregroundStyle(.secondary)

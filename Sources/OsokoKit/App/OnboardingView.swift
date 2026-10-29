@@ -14,20 +14,8 @@ public struct OnboardingView: View {
         VStack(spacing: 20) {
             // Header
             VStack(spacing: 8) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(LinearGradient(
-                            colors: [.blue, .indigo],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ))
-                        .frame(width: 58, height: 58)
-                        .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
-
-                    Image(systemName: "camera.viewfinder")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundStyle(.white)
-                }
+                OsokoAppIcon()
+                    .frame(width: 64, height: 64)
                 .padding(.top, 10)
 
                 Text("Welcome to Osoko")
